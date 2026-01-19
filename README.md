@@ -113,7 +113,8 @@ The circuit of interest is represented as **call graph**:
 - edge weights are integers that count how often an operation is contained in a node
 
 For example, quantum amplitude estimation (QAE) would be represented as:
-![image](https://github.ibm.com/user-attachments/assets/f705a7f7-5339-438b-a9f7-acbae25e59be)
+
+![image](images/qae.png)
 
 This representation allows to unroll a circuit and count operations very efficiently, but loses information about relative placements.
 
