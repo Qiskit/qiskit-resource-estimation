@@ -2,6 +2,8 @@
 
 .PHONY: black ruff
 
+all: black ruff ;
+
 black:
 	black ft_resource_estimation examples 
 

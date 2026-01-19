@@ -6,7 +6,6 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from mpmath import mp
 
-
 DEFAULT_DPS = 200
 
 

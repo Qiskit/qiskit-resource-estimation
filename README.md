@@ -66,10 +66,10 @@ High-level example:
 ```python
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import grover_operator
-from resource_estimation.graphs import CallGraph
-from resource_estimation.topologies import Linear
-from resource_estimation.error_models import GrossErrorModel
-from resource_estimation.target import Target
+from ft_resource_estimation.graphs.callgraph import CallGraph
+from ft_resource_estimation.topologies import Linear
+from ft_resource_estimation.error_models import GrossErrorModel
+from ft_resource_estimation.target import Target
 
 
 # build the circuit we are interested in

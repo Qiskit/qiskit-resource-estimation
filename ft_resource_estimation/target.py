@@ -15,7 +15,6 @@ from .transformations import PBCTransformation
 from .topologies.topology import BaseTopology
 from .error_models.error_model import BicycleErrorModel, GateType
 
-
 CLIFFORD_GATES = get_clifford_gate_names()
 BASIS_GATES = CLIFFORD_GATES + ["rz", "rzz"]
 
