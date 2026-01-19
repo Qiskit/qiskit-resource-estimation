@@ -171,17 +171,20 @@ In addition, for some research questions we explicitly state the expected **deli
 1. Set of examples
    1. Simple examples: Arithmetics (e.g. multiplication with different adders), QPE, Grover, QAOA / Trotter. 
       **Deliverable:** New additions in the `Examples` folder.
-   2. High level algorithm demonstration (something beyond the examples in 1.).
-3. Quality benchmarks compared against analytical numbers on a subset of the `Examples`.
-4. What are the main error contributions? **[[F1](#F1)]**
+   1. High level algorithm demonstration (something beyond the examples in 1.).
+1. Quality benchmarks compared against 
+   1. analytical numbers on a subset of the `Examples`.
+   1. on smaller sets, compare against full Gross code ISA compilation
+1. What are the main error contributions? **[[F1](#F1)]**
    1. Does routing overhead have a larger impact than compiling to the optimal location? If so can use dictionaries instead of compiling the blocks.
-5. Survey: compare to qualtran, bartiq. **Deliverable:** `Benchmarks` folder / repo that uses the `Examples` from 1.
-6. Litinski on the set of examples **[[F2](#F2)]**. **Deliverable:** data or plots.
-7. Functional representation of the error such that it takes different error contributions as input and outputs the total fidelity. **[[F1](#F1)]** **Deliverable:** Tutorial that uses this feature.
-8. T factory layout: **[[F3](#F3), [F4](#F4)]**
+1. Survey: compare to qualtran, bartiq. **Deliverable:** `Benchmarks` folder / repo that uses the `Examples` from 1.
+1. Litinski on the set of examples **[[F2](#F2)]**. **Deliverable:** data or plots.
+   1. In which regime is Litinski worth it?
+1. Functional representation of the error such that it takes different error contributions as input and outputs the total fidelity. **[[F1](#F1)]** **Deliverable:** Tutorial that uses this feature.
+1. T factory layout: **[[F3](#F3), [F4](#F4)]**
    1. dynamic vs fixed
-   2. How much do you gain by going from line -> ladder -> square -> dynamic allocation of T factory
-   3. Given a quantum algorithm, what is the optimal and realistic topology in terms of T factories?
+   1. How much do you gain by going from line -> ladder -> square -> dynamic allocation of T factory
+   1. Given a quantum algorithm, what is the optimal and realistic topology in terms of T factories?
 
 ### Software features
 
