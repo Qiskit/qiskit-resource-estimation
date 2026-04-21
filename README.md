@@ -18,6 +18,7 @@
   - [Roadmap](#roadmap)
     - [Research questions](#research-questions)
     - [Software features](#software-features)
+  - [Installation](#installation)
 
 ## Overview
 
@@ -195,3 +196,7 @@ This section lists the concrete software features to be implemented. Features ar
 3. <a id="F3"></a> Different T factory topologies
 4. <a id="F4"></a> Dynamic T factory allocation
 5. <a id="F5"></a> Include algorithmic error
+
+## Installation
+
+You can install the package using pip (or your preferred package manager) via `pip install .`, which will install all necessary requirements. Since there are no compiled components, installing in editable mode is typically helpful for development; `pip install -e .`.

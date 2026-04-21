@@ -6,6 +6,20 @@ build-backend = "setuptools.build_meta"
 name = "ft_resource_estimation"
 version = "0.1.0"
 description = "Estimate FTQC algorithm resources"
+dependencies = ["qiskit", "mpmath"]
+
+[tool.setuptools]
+packages = ["ft_resource_estimation"]
+
+# development dependencies only (not included in built distribution)
+[dependency-groups]
+examples = [ # dependency group for running the examples
+  "matplotlib",
+]
+dev = [
+  "black",
+  "ruff"
+]
 
 [tool.black]
 line-length = 100
