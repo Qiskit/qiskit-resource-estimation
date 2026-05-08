@@ -3,41 +3,43 @@
 """A call graph representation of a quantum circuit."""
 
 from __future__ import annotations
-from qiskit.circuit import QuantumCircuit, Instruction
-from rustworkx import PyDiGraph  # pylint: disable=no-name-in-module
+from typing import TYPE_CHECKING, Any
 
-from .nodes import Sentinel, Node
+from rustworkx import PyDiGraph
+from qiskit.circuit import QuantumCircuit
+
+from .nodes import Sentinel, Node, InstructionNode
+from .metrics import Metric, Value
+
+if TYPE_CHECKING:
+    from ..error_models.error_model import ErrorModel
 
 
 class CallGraph:
     """A call graph representation of a quantum circuit."""
 
-    # todo add decomposer, which should also allow setting the target basis?
-    def __init__(self, operation: QuantumCircuit | Instruction):
+    def __init__(self, operation: Node):
         self._graph = PyDiGraph()
+        self._root = self._graph.add_node(operation)
+        self._unroll_node(self._root, operation)
 
-        if isinstance(operation, QuantumCircuit):
-            self._init_circuit(operation)
+    @classmethod
+    def from_circuit(cls, circuit: QuantumCircuit) -> CallGraph:
+        """Construct a CallGraph from a Qiskit QuantumCircuit."""
+        instance = cls.__new__(cls)
+        instance._graph = PyDiGraph()
+        instance._root = instance._graph.add_node(Sentinel(circuit.name))
 
-        elif isinstance(operation, Instruction):
-            node = Node(operation)
-            self._root = self._graph.add_node(node)
-            self._unroll_node(self._root, node)
-
-        else:
-            raise TypeError(f"operation of type {type(operation)} are not supported")
-
-    def _init_circuit(self, circuit: QuantumCircuit):
-        self._root = self._graph.add_node(Sentinel(circuit.name))
-
-        operations = {}
+        operations: dict[InstructionNode, int] = {}
         for circuit_inst in circuit.data:
-            node = Node(circuit_inst.operation)
+            node = InstructionNode(circuit_inst.operation)
             operations[node] = operations.get(node, 0) + 1
 
         for node, count in operations.items():
-            node_id = self._graph.add_child(self._root, node, count)
-            self._unroll_node(node_id, node)
+            node_id = instance._graph.add_child(instance._root, node, count)
+            instance._unroll_node(node_id, node)
+
+        return instance
 
     def _unroll_node(self, node_id, node):
         if (operations := node.operations()) is None:
@@ -89,35 +91,69 @@ class CallGraph:
             node_id = to_visit.pop()
             node = nodes[node_id]
 
-            # we count the node either if it's in the target basis or if we can no longer unroll
             if node.name().lower() in basis:
-                count_node = True
-                children = None
+                counts[node] = counts.get(node, 0) + self._path_cost(node_id)
             else:
                 children = set(self._graph.successor_indices(node_id))
-                # if we can't decompose it, count it (unless the user told us to raise an error)
                 if len(children) == 0:
                     if not allow_incomplete_basis:
                         raise RuntimeError(f"Couldn't unroll node: {node} to basis: {basis}")
-                    count_node = True
-                # if we can decompose it, do so
+                    counts[node] = counts.get(node, 0) + self._path_cost(node_id)
                 else:
-                    count_node = False
-
-            if count_node:
-                # found a target, count it -- this could probably be done more efficiently
-                # by keeping track of the current cost, but I'm out of time and need to go to Italy
-                counts[node] = counts.get(node, 0) + self._path_cost(node_id)
-            else:
-                # otherwise update the list to visit
-                to_visit |= children
+                    to_visit |= children
 
         return counts
+
+    def estimate(
+        self,
+        basis: list[str] | None = None,
+        error_models: dict[type[Node], "ErrorModel[Any]"] | None = None,
+    ) -> dict[Metric, Value]:
+        """Estimate metrics by accumulating over all basis nodes.
+
+        For each node, metrics are sourced from two places and merged:
+        - ``node.metrics()`` — metrics the node declares itself
+        - the first error model whose ``supports(node)`` returns True
+
+        When both sources define the same metric key, the error model's value takes precedence.
+        Metrics are then scaled by the node's repetition count and accumulated across all nodes.
+
+        Args:
+            basis: Nodes to stop unrolling at (passed to ``count_basis``). If ``None``, the
+                graph is fully unrolled to the terminal leafs.
+            error_models: A mapping from node type to error model. The first model whose
+                ``supports(node)`` returns True is used; keys communicate intent but are not
+                used for lookup.
+
+        Returns:
+            A dictionary mapping each metric to its accumulated value.
+        """
+        counts = self.count_basis(basis)
+        totals: dict[Metric, Value] = {}
+        error_models = error_models or {}
+
+        for node, count in counts.items():
+            node_metrics = node.metrics() or {}
+            em = next((m for m in error_models.values() if m.supports(node)), None)
+            em_metrics = em.evaluate(node) if em is not None else {}
+
+            # merge: error model overwrites node value for same key; disjoint keys kept
+            merged = {**node_metrics, **em_metrics}
+
+            # scale by count and fold into running totals
+            for metric, value in merged.items():
+                scaled = metric.repeat(value, count)
+                totals[metric] = (
+                    metric.combine(totals[metric], scaled) if metric in totals else scaled
+                )
+
+        return totals
 
     def _path_cost(self, index: int) -> int:
         prod = 1
         while len(parent := self._graph.predecessor_indices(index)) > 0:
-            assert len(parent) == 1, "something really went wrong"
+            if len(parent) != 1:
+                raise RuntimeError(f"Expected exactly one parent, got {len(parent)}")
             prod *= self._graph.get_edge_data(parent[0], index)
             index = parent[0]
 

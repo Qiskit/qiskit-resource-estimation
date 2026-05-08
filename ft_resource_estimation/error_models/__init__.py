@@ -1,5 +1,15 @@
 """The module for error models."""
 
-from .error_model import GrossErrorModel
+from .error_model import ErrorModel
+from .bicycle.error_rates import ErrorRates, gross_code
+from .bicycle.bicycle_error_models import BicycleErrorModel, GrossErrorModel
+from .tdg import TdGErrorModel
 
-__all__ = ["GrossErrorModel"]
+__all__ = [
+    "ErrorModel",
+    "ErrorRates",
+    "gross_code",
+    "BicycleErrorModel",
+    "GrossErrorModel",
+    "TdGErrorModel",
+]

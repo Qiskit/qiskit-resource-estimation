@@ -6,10 +6,12 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.quantum_info import SparseObservable
 
-from ft_resource_estimation.graphs import CallGraph
+from ft_resource_estimation.graphs import CallGraph, InstructionNode
+from ft_resource_estimation.graphs.metrics import Fidelity
 from ft_resource_estimation.error_models import GrossErrorModel
+from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
 from ft_resource_estimation.topologies import Linear
-from ft_resource_estimation.target import Target
+from ft_resource_estimation.topologies.topology import Allocation
 
 # define the Hamiltonian for QPE
 n = 100
@@ -28,7 +30,7 @@ qc.h(qc.qubits)
 initial = qc.to_gate()
 
 # build the QPE circuit
-num_eval_qubits = 20
+num_eval_qubits = 100
 circuit = QuantumCircuit(num_eval_qubits + n)
 
 qpe = phase_estimation(num_eval_qubits, unitary)
@@ -39,18 +41,25 @@ print("Circuit counts:")
 for item, counts in circuit.count_ops().items():
     print("  ", item, counts)
 
-# define the Target we compile to
-error_model = GrossErrorModel(p=4)
-topo = Linear(num_modules=n // 11 + 1)
-target = Target(topo, error_model)
+# define the error model and topology
+topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
+routing = TeleportationRouting(allocation=Allocation.BEST)
+# routing = None # or SwapRouting()
+error_model = GrossErrorModel(topology=topo, p=4, routing=routing)
 
-# create the resource graph from the circuit
-graph = CallGraph(circuit)
-base_count = graph.count_basis(["qft_dg", "PauliEvolution"])  # count final leafs
-print("\n\nResource graph counts")
-for item, counts in base_count.items():
-    print("  ", item, counts)
+# build the call graph and estimate metrics
+graph = CallGraph.from_circuit(circuit)
+metrics = graph.estimate(
+    basis=["qft_dg", "PauliEvolution"],
+    error_models={InstructionNode: error_model},
+)
 
-# Estimate the fidelity
-base_fid = target.estimate_fidelity(base_count)
-print("Fidelity:", base_fid)
+print("\nResource graph counts:")
+for node, count in graph.count_basis(["qft_dg", "PauliEvolution"]).items():
+    print("  ", node, count)
+
+print("\nMetrics:")
+for metric, value in metrics.items():
+    print(f"  {type(metric).__name__}: {value}")
+
+print("\nFidelity:", metrics[Fidelity()])

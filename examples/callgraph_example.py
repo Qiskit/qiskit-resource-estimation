@@ -4,10 +4,11 @@
 
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import QFTGate, MCXGate
-from ft_resource_estimation.graphs import CallGraph
+
+from ft_resource_estimation.graphs import CallGraph, InstructionNode
+from ft_resource_estimation.graphs.metrics import Fidelity
 from ft_resource_estimation.error_models import GrossErrorModel
 from ft_resource_estimation.topologies import Linear
-from ft_resource_estimation.target import Target
 from ft_resource_estimation.library import Add
 
 
@@ -20,8 +21,7 @@ def build_circuit(num_qubits):
         circuit.append(qft, circuit.qubits)
     circuit.append(mcx, circuit.qubits)
 
-    # note this will currently use the default definitions of the gates
-    graph = CallGraph(circuit)
+    graph = CallGraph.from_circuit(circuit)
 
     base_count = graph.count_basis()  # count final leafs
     for node, count in base_count.items():
@@ -35,25 +35,22 @@ def build_circuit(num_qubits):
     cxcount = graph.count("cx")  # count CX gates
     print("cx:", cxcount)
 
-    return base_count
+    return graph
 
 
-# define the Target we compile to
 num_qubits = 20
-error_model = GrossErrorModel(p=3)
 topo = Linear(num_modules=num_qubits // 11 + 1)
-target = Target(topo, error_model)
+error_model = GrossErrorModel(topology=topo, p=3)
 
-# first we build a call graph from a circuit
-base_count = build_circuit(num_qubits)
-base_fid = target.estimate_fidelity(base_count)
+# build a call graph from a circuit and estimate metrics
+graph = build_circuit(num_qubits)
+metrics = graph.estimate(error_models={InstructionNode: error_model})
 print("\nCircuit example:")
-print("Estimated fidelity:", base_fid)
+print("Estimated fidelity:", metrics[Fidelity()])
 
-# but we can also use the library and defined instructions there
+# library nodes (Add) are InstructionNode subclasses — same error model applies
 add = Add(num_qubits, apply_qft=True)
 graph = CallGraph(add)
-base_count = graph.count_basis()
-base_fid = target.estimate_fidelity(base_count)
+metrics = graph.estimate(error_models={InstructionNode: error_model})
 print("\nGate example:")
-print("Estimated fidelity:", base_fid)
+print("Estimated fidelity:", metrics[Fidelity()])

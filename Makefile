@@ -1,6 +1,11 @@
 # Copyright IBM 2026.
 
-.PHONY: black ruff
+.PHONY: black ruff type check
+
+check: black ruff type
+
+type:
+	pyrefly check --summarize-errors
 
 all: black ruff ;
 

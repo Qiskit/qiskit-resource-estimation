@@ -5,26 +5,42 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from ft_resource_estimation.graphs.nodes import BaseNode
+from enum import Enum
+
+from ft_resource_estimation.graphs.nodes import Node
+
+
+class Allocation(Enum):
+    BEST = 0
+    AVG = 1
+    WORST = 2
 
 
 class BaseTopology(ABC):
     """Base topology."""
 
-    def __init__(self, default_allocator: Callable[[BaseNode], list[int]]):
+    def __init__(self, default_allocator: Callable[[Node, Allocation], list[int]]):
         """
         Args:
             default_allocator: A topology needs a default allocator for nodes.
         """
         self._allocator = default_allocator
 
-    def set_allocator(self, allocator: Callable[[BaseNode], list[int]]):
+    def set_allocator(self, allocator: Callable[[Node, Allocation], list[int]]):
         """Set a new allocator to use."""
         self._allocator = allocator
 
-    def allocate(self, node: BaseNode) -> list[int]:
+    def allocate(self, node: Node, allocation: Allocation = Allocation.BEST) -> list[int]:
         """Get the location of a node."""
-        return self._allocator(node=node)
+        return self._allocator(node, allocation)
+
+    def num_ancilla_qubits(self) -> int:
+        """The number of ancilla qubits available for compilation."""
+        return 0
+
+    def allocate_ancilla(self) -> list[int]:
+        """Return topology indices reserved for ancilla qubits."""
+        return []
 
     @abstractmethod
     def num_qubits(self) -> int:
@@ -32,12 +48,12 @@ class BaseTopology(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def coupling_map(self) -> list[list[int]]:
+    def coupling_map(self) -> list[list[int]] | None:
         """The coupling map of the topology"""
         raise NotImplementedError
 
     @abstractmethod
-    def magic_distance(self, index: int) -> int:
+    def magic_distance(self, index1: int, index2: int | None = None) -> int:
         """Return the distance to the magic factory, counted in blocks.
 
         The neighboring block of the magic factory would have distance 1.

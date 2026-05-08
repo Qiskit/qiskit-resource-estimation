@@ -2,6 +2,7 @@
 
 """The topologies module."""
 
-from .tour_de_gross import Linear, AllToAll
+from .tour_de_gross import Linear
+from .all_to_all import AllToAll
 
 __all__ = ["AllToAll", "Linear"]

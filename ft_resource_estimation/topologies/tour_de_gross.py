@@ -5,28 +5,46 @@
 from functools import partial
 import numpy as np
 
-from ft_resource_estimation.graphs.nodes import BaseNode
-from .topology import BaseTopology
+from ft_resource_estimation.graphs.nodes import Node
+from .topology import BaseTopology, Allocation
 
 
 class Linear(BaseTopology):
     """Tour de Gross topology -- linear module connectivity with a single T factory at 0."""
 
-    def __init__(self, num_modules: int):
+    def __init__(self, num_modules: int, num_ancillas: int = 0):
         """
         Args:
             num_modules: The number of modules ("donuts") in the topology.
+            num_ancillas: Number of ancilla qubits reserved at the far end of the chain.
         """
-        default_allocator = partial(linear_allocator, num_modules=num_modules)
+        default_allocator = partial(
+            linear_allocator, num_modules=num_modules, num_ancillas=num_ancillas
+        )
         super().__init__(default_allocator)
 
         self._num_modules = num_modules
         self._qubits_per_module = 11
 
-    def num_qubits(self) -> int:
+        qubits_per_module = 11
+        available = np.concatenate(
+            [
+                np.arange((qubits_per_module + 1) * k + 1, (qubits_per_module + 1) * (k + 1))
+                for k in range(num_modules)
+            ]
+        )
+        self._ancilla_indices = available[-num_ancillas:].tolist() if num_ancillas > 0 else []
+
+    def num_qubits(self):
         return self._num_modules * self._qubits_per_module
 
-    def coupling_map(self) -> list[list[int]]:
+    def num_ancilla_qubits(self):
+        return len(self._ancilla_indices)
+
+    def allocate_ancilla(self):
+        return self._ancilla_indices
+
+    def coupling_map(self):
         coupling_map = []
         # for the coupling map we take into account the pivot qubit
         qubits_per_module = self._qubits_per_module + 1
@@ -71,11 +89,11 @@ class Linear(BaseTopology):
         locality = len({index // self._qubits_per_module for index in indices})
         return locality
 
-    def average_routing_overhead(self, num_qubits: int):
+    def average_routing_overhead(self, num_qubits):
         """Return the average number of blocks between the optimal and average location given a
         node with `num_qubits` qubits.
         """
-        available_qubits = self.num_qubits()
+        available_qubits = self.num_qubits() - self.num_ancilla_qubits()
         if num_qubits > available_qubits:
             raise ValueError(
                 "Cannot compute the average location, too many qubits "
@@ -89,51 +107,9 @@ class Linear(BaseTopology):
         return average_q0_idx // self._qubits_per_module
 
 
-class AllToAll(BaseTopology):
-    """All to all module connectivity.
-
-    It assumes T gate factories next to
-    each module and that each module is connected to every other module.
-    """
-
-    def __init__(self, num_modules: int):
-        """
-        Args:
-            num_modules: The number of modules ("donuts") in the topology.
-        """
-        default_allocator = partial(linear_allocator, num_modules=num_modules)
-        super().__init__(default_allocator)
-
-        self._num_modules = num_modules
-        self._qubits_per_module = 11
-
-    def num_qubits(self) -> int:
-        return self._num_modules * self._qubits_per_module
-
-    def coupling_map(self) -> list[list[int]]:
-        return None
-
-    def magic_distance(self, index1, index2=None):
-        """If adjacent to a factory, it returns 1."""
-        return 1
-
-    def block_distance(self, index1, index2):
-        """Block distance between the two indices, if they lay within the same module, it returns 0."""
-        return np.abs(index2 // self._qubits_per_module - index1 // self._qubits_per_module)
-
-    def locality(self, indices):
-        """Return the number of different blocks the given indices lay in. This corresponds to the
-        number of blocks with non-identity operations.
-        """
-        locality = len({index // self._qubits_per_module for index in indices})
-        return locality
-
-    def average_routing_overhead(self, num_qubits: int):
-        """In the all-to-all connectivity we assume no overhead."""
-        return 0
-
-
-def linear_allocator(num_modules: int, node: BaseNode) -> list[int]:
+def linear_allocator(
+    node: Node, allocation: Allocation, num_modules: int, num_ancillas: int = 0
+) -> list[int]:
     """An allocator for a linear topology.
 
     Just returns the first ``node.num_qubits()`` indices, which are associated to the ones
@@ -142,14 +118,16 @@ def linear_allocator(num_modules: int, node: BaseNode) -> list[int]:
     Returns the optimal location for the given node as a list of qubit indices.
 
     Args:
-        num_modules: The number of modules in the topology.
         node: The node to allocate.
+        allocation: The allocation strategy.
+        num_modules: The number of modules in the topology.
+        num_ancillas: Number of ancilla qubits reserved at the far end (excluded from allocation).
 
     Raises:
-        ValueError: If ``node.num_qubits()`` is too large for the topology.
+        ValueError: If ``node.num_qubits()`` is too large for the usable topology.
     """
     qubits_per_module = 11
-    available_qubits = num_modules * qubits_per_module
+    available_qubits = num_modules * qubits_per_module - num_ancillas
     num_qubits = node.num_qubits()
     if num_qubits > available_qubits:
         raise ValueError(
@@ -164,6 +142,14 @@ def linear_allocator(num_modules: int, node: BaseNode) -> list[int]:
             np.arange((qubits_per_module + 1) * k + 1, (qubits_per_module + 1) * (k + 1))
             for k in range(num_modules)
         ]
-    )
+    )[:available_qubits]
 
-    return available_indices[:num_qubits]
+    if allocation == Allocation.BEST:
+        return available_indices[:num_qubits].tolist()
+    if allocation == Allocation.AVG:
+        center = available_qubits // 2
+        start = center - num_qubits // 2
+        return available_indices[start : (start + num_qubits)].tolist()
+
+    # else: worst case
+    return available_indices[-num_qubits:].tolist()

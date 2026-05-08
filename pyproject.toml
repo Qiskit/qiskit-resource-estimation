@@ -16,10 +16,7 @@ packages = ["ft_resource_estimation"]
 examples = [ # dependency group for running the examples
   "matplotlib",
 ]
-dev = [
-  "black",
-  "ruff"
-]
+dev = ["black", "ruff", "pyrefly"]
 
 [tool.black]
 line-length = 100
@@ -32,3 +29,7 @@ line-length = 105
 # overlap with the use of a formatter, like Black, but we can override this behavior by
 # explicitly adding the rule.
 extend-select = ["E501"]
+
+[tool.pyrefly]
+project-includes = ["**/*.py"]
+project-excludes = ["examples/**"]
