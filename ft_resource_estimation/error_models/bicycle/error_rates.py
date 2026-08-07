@@ -46,3 +46,32 @@ def gross_code(p: int, dps: int = DEFAULT_DPS) -> ErrorRates:
         )
 
     raise ValueError(f"Invalid p: {p}")
+
+
+def two_gross_code(p: int, dps: int = DEFAULT_DPS) -> ErrorRates:
+    """Return the Two Gross code error rates for a given physical error exponent.
+
+    Args:
+        p: Physical error rate exponent — 3 for 1e-3, 4 for 1e-4.
+        dps: Decimal precision for mpmath arithmetic.
+    """
+    mp.dps = dps
+    if p == 3:
+        return ErrorRates(
+            idle=mp.mpf(0),
+            inter_block_measure=mp.mpf(1e-9),
+            in_block_measure=mp.mpf(1e-11),
+            automorphism=mp.mpf(10 ** (-14.5)),
+            inject_t=mp.mpf(10 ** (-7.7)),
+        )
+
+    if p == 4:
+        return ErrorRates(
+            idle=mp.mpf(0),
+            inter_block_measure=mp.mpf(1e-18),
+            in_block_measure=mp.mpf(1e-20),
+            automorphism=mp.mpf(1e-37),
+            inject_t=mp.mpf(10 ** (-24.4)),
+        )
+
+    raise ValueError(f"Invalid p: {p}")

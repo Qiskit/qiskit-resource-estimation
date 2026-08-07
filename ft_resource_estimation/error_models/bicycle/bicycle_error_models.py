@@ -8,7 +8,7 @@ from qiskit.transpiler import PassManager
 from mpmath import mp
 
 from .routing import Routing, SwapRouting
-from .error_rates import ErrorRates, gross_code
+from .error_rates import ErrorRates, gross_code, two_gross_code
 from . import compiler
 from ..error_model import ErrorModel
 from ...graphs.nodes import Node, InstructionNode
@@ -98,3 +98,24 @@ class GrossErrorModel(BicycleErrorModel):
         pass_manager: PassManager | None = None,
     ):
         super().__init__(topology, gross_code(p), routing, t_threshold, pass_manager)
+
+
+class TwoGrossErrorModel(BicycleErrorModel):
+    """Convenience error model for the Gross / Two-Gross bicycle code.
+
+    Args:
+        topology: The hardware topology.
+        p: Physical error rate exponent — 3 for 1e-3, 4 for 1e-4.
+        routing: Routing strategy (defaults to SwapRouting).
+        t_threshold: Number of T gates used to synthesise an arbitrary rotation.
+    """
+
+    def __init__(
+        self,
+        topology: BaseTopology,
+        p: int,
+        routing: Routing | None = None,
+        t_threshold: int = 200,
+        pass_manager: PassManager | None = None,
+    ):
+        super().__init__(topology, two_gross_code(p), routing, t_threshold, pass_manager)
