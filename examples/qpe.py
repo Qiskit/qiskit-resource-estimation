@@ -7,10 +7,9 @@ from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.quantum_info import SparseObservable
 
 from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.graphs.metrics import Fidelity
 from ft_resource_estimation.error_models import GrossErrorModel
-from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
 from ft_resource_estimation.topologies import Linear
+from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
 from ft_resource_estimation.topologies.topology import Allocation
 
 # define the Hamiltonian for QPE
@@ -43,23 +42,24 @@ for item, counts in circuit.count_ops().items():
 
 # define the error model and topology
 topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
-routing = TeleportationRouting(allocation=Allocation.BEST)
-# routing = None # or SwapRouting()
+# routing = TeleportationRouting(allocation=Allocation.BEST)
+routing = None  # or SwapRouting()
 error_model = GrossErrorModel(topology=topo, p=4, routing=routing)
+
+basis = ["qft_dg", "PauliEvolution"]  # or None to unroll fully
 
 # build the call graph and estimate metrics
 graph = CallGraph.from_circuit(circuit)
+
 metrics = graph.estimate(
-    basis=["qft_dg", "PauliEvolution"],
+    basis=basis,
     error_models={InstructionNode: error_model},
 )
 
 print("\nResource graph counts:")
-for node, count in graph.count_basis(["qft_dg", "PauliEvolution"]).items():
+for node, count in graph.count_basis(basis).items():
     print("  ", node, count)
 
 print("\nMetrics:")
 for metric, value in metrics.items():
-    print(f"  {type(metric).__name__}: {value}")
-
-print("\nFidelity:", metrics[Fidelity()])
+    print(f"  {type(metric).__name__}: {float(value):.5f}")
