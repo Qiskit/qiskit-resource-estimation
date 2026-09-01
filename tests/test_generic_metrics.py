@@ -1,4 +1,4 @@
-# Copyright IBM 2026.
+# Copyright IBM 2026
 
 """Test generic Node/Metric pipeline without Qiskit or an error model."""
 

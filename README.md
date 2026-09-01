@@ -1,6 +1,10 @@
+
 # Resource estimation for FT programs
 
 Fast resource estimation for fault-tolerant quantum circuits, without full compilation.
+
+> [!NOTE]
+> This repository is under active development and the code here should not be considered stable.
 
 ## Motivation
 

@@ -1,3 +1,5 @@
+# Copyright IBM 2026
+
 """The module for error models."""
 
 from .error_model import ErrorModel

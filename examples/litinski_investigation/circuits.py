@@ -1,4 +1,4 @@
-# Copyright IBM 2025.
+# Copyright IBM 2025
 
 """Example algorithm circuits for the Litinski experiments."""
 

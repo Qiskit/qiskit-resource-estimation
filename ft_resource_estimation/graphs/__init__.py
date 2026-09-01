@@ -1,4 +1,4 @@
-# Copyright IBM 2025.
+# Copyright IBM 2025
 
 from .callgraph import CallGraph
 from .nodes import Sentinel, Node, InstructionNode

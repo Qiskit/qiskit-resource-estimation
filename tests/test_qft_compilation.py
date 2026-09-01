@@ -1,4 +1,4 @@
-# Copyright IBM 2026.
+# Copyright IBM 2026
 
 """Test QFT compilation through the default Gross code pass manager."""
 

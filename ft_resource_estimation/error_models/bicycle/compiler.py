@@ -1,4 +1,4 @@
-# Copyright IBM 2026.
+# Copyright IBM 2026
 
 """Compiler for the bicycle code architecture."""
 
@@ -16,7 +16,6 @@ from .error_rates import ErrorRates
 from .isa import GateType
 from ...graphs.nodes import InstructionNode
 from ...topologies.topology import BaseTopology
-
 
 CLIFFORD_GATES = get_clifford_gate_names()
 BASIS_GATES = CLIFFORD_GATES + ["rz", "rzz"]

@@ -1,4 +1,4 @@
-# Copyright IBM 2026.
+# Copyright IBM 2026
 
 """Tests for BicycleErrorModel / GrossErrorModel behaviour."""
 

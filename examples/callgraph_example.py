@@ -1,4 +1,4 @@
-# Copyright IBM 2025.
+# Copyright IBM 2025
 
 """An example on how to use the callgraph with Qiskit ``Instruction``s."""
 

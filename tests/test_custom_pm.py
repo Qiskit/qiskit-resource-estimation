@@ -1,4 +1,4 @@
-# Copyright IBM 2026.
+# Copyright IBM 2026
 
 """Test passing a custom pass manager into BicycleErrorModel.
 

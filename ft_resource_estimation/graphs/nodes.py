@@ -1,4 +1,4 @@
-# Copyright IBM 2025.
+# Copyright IBM 2025
 
 """Nodes for the call graph."""
 

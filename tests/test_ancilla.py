@@ -1,4 +1,4 @@
-# Copyright IBM 2026.
+# Copyright IBM 2026
 
 """Tests for ancilla qubit support in topology and compiler."""
 

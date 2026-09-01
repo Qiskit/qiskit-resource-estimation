@@ -1,4 +1,4 @@
-# Copyright IBM 2025.
+# Copyright IBM 2025
 
 """Tour de Gross topology -- linear module connectivity with a single T factory at the beginning."""
 
