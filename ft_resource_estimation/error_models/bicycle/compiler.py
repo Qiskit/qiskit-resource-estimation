@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 from mpmath import mp
-import numpy as np
 
 from qiskit.circuit import AncillaRegister, QuantumCircuit, ParameterExpression
 from qiskit.transpiler import PassManager, generate_preset_pass_manager
@@ -14,17 +13,18 @@ from qiskit.quantum_info import get_clifford_gate_names
 
 from .error_rates import ErrorRates
 from .isa import GateType
-from ...graphs.nodes import InstructionNode
+from ...graphs.nodes import AngleClass, InstructionNode, angle_class
 from ...topologies.topology import BaseTopology
 
 CLIFFORD_GATES = get_clifford_gate_names()
 BASIS_GATES = CLIFFORD_GATES + ["rz", "rzz"]
 
-
-def is_multiple_of_pi_k(angle, k):
-    modulo = angle * k / np.pi
-    remainder = modulo % 1.0
-    return np.isclose(remainder, 0) or np.isclose(remainder, 1)
+ANGLE_CLASS_TO_GATE_TYPE = {
+    AngleClass.PAULI: GateType.Pauli,
+    AngleClass.CLIFFORD: GateType.Clifford,
+    AngleClass.T: GateType.T,
+    AngleClass.ROTATION: GateType.Rotation,
+}
 
 
 def get_gate_type(inst) -> GateType:
@@ -62,14 +62,7 @@ def get_gate_type(inst) -> GateType:
         if name == "PauliEvolution":
             angle /= 2
 
-        if is_multiple_of_pi_k(angle, 1):
-            return GateType.Pauli
-        elif is_multiple_of_pi_k(angle, 2):
-            return GateType.Clifford
-        elif is_multiple_of_pi_k(angle, 4):
-            return GateType.T
-        else:
-            return GateType.Rotation
+        return ANGLE_CLASS_TO_GATE_TYPE[angle_class(angle)]
     elif name in {"x", "y", "z"}:
         return GateType.Pauli
     elif name == "t":
