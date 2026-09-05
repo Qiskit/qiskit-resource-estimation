@@ -118,6 +118,9 @@ class Sentinel(Node):
     def num_qubits(self):
         raise RuntimeError("A Sentinel cannot be decomposed. This indicates a faulty graph.")
 
+    def __repr__(self) -> str:
+        return f"{self.name()} (sentinel)"
+
 
 class InstructionNode(Node):
     """A node backed by a Qiskit ``Instruction``.

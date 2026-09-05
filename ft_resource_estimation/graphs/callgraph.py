@@ -14,6 +14,9 @@ from .metrics import Metric, Value
 if TYPE_CHECKING:
     from ..error_models.error_model import ErrorModel
 
+# constant number of flamegraph samples to distribute
+NUM_SAMPLES = 10_000
+
 
 class CallGraph:
     """A call graph representation of a quantum circuit."""
@@ -149,6 +152,74 @@ class CallGraph:
 
         return totals
 
+    def dump_flamegraph(
+        self,
+        filename: str,
+        metric: Metric,
+        basis: list[str] | None = None,
+        allow_incomplete_basis: bool = True,
+        error_models: dict[type[Node], "ErrorModel[Any]"] | None = None,
+        overwrite: bool = False,
+    ):
+        if self._root is None:
+            raise RuntimeError("Graph seems to be empty!")
+
+        if basis is None:
+            basis = []
+        else:
+            # make name checking case insensitive
+            basis = list(name.lower() for name in basis)
+
+        nodes = self._graph.nodes()
+        to_visit = {self._root}
+        leafs = []  # list of all the final nodes -- this shouldn't use Hash-based containers
+
+        while len(to_visit) > 0:
+            node_idx = to_visit.pop()
+            self._graph.successor_indices(node_idx)
+            node = nodes[node_idx]
+
+            if node.name().lower() in basis:
+                print(f"node.name() ({node.name().lower()}) is in basis {basis}")
+                leafs.append(node_idx)
+            else:
+                print(f"node.name() ({node.name().lower()}) is not in")
+                children = set(self._graph.successor_indices(node_idx))
+
+                if len(children) == 0:
+                    if not allow_incomplete_basis:
+                        raise RuntimeError(f"Couldn't unroll node: {node} to basis: {basis}")
+                    leafs.append(node_idx)
+                else:
+                    to_visit |= children
+
+        nodes = self._graph.nodes()
+        all_values = [
+            metric.repeat(
+                _eval_metric_on_node(nodes[node_idx], metric, error_models),
+                self._path_cost(node_idx),
+            )
+            for node_idx in leafs
+        ]
+        samples = metric.values_to_samples(all_values, num_samples=NUM_SAMPLES)
+
+        fmode = "w" if overwrite else "x"
+        with open(filename, fmode) as fhandle:
+            for num_samples, node in zip(samples, leafs):
+                ancestry, multiplicity = self._get_ancestry(node, with_counts=True)
+
+                # format the flamegraph string, which has the form
+                # root; leaf1; leaf2; final_leaf cost
+                # we're labeling the leafs with "<name>(<count> x)" to include the count in the flamegraph
+                fmt = "; ".join(
+                    f"{ancestor.name()}({mult}x)"
+                    for ancestor, mult in zip(ancestry[::-1], multiplicity[::-1])
+                )
+                fmt += f" {num_samples}\n"
+                fhandle.write(fmt)
+
+        print(f"Wrote to {filename}.")
+
     def _path_cost(self, index: int) -> int:
         prod = 1
         while len(parent := self._graph.predecessor_indices(index)) > 0:
@@ -158,3 +229,52 @@ class CallGraph:
             index = parent[0]
 
         return prod
+
+    def _get_ancestry(
+        self, node_idx: int, with_counts: bool = False
+    ) -> list[Node] | tuple[list[Node], list[int]]:
+        """Get the ancestors of the node.
+
+        This is formatted as ``[node, ancestor1, ancestor2, ..., root]``. In particular, the
+        node itself is included as first element.
+        """
+        index_to_node = dict(enumerate(self._graph.nodes()))
+        print(index_to_node)
+
+        history = [index_to_node[node_idx]]
+        counts = []
+        current_idx = node_idx
+
+        while current_idx != self._root:
+            ancestor_idx = self._graph.predecessor_indices(current_idx)
+            if len(ancestor_idx) != 1:
+                raise RuntimeError("Each node should have exactly 1 ancestor!")
+            ancestor_idx = ancestor_idx[0]
+
+            history.append(index_to_node[ancestor_idx])
+            counts.append(self._graph.get_edge_data(ancestor_idx, current_idx))
+
+            current_idx = ancestor_idx
+
+        counts.append(1)  # root appears once
+
+        if with_counts:
+            return history, counts
+        return history
+
+
+def _eval_metric_on_node(
+    node: Node, metric: Metric, error_models: dict[type[Node], "ErrorModel[Any]"] | None = None
+) -> Value:
+    value = None
+    if error_models is not None:
+        if (em := error_models.get(type(node))) is not None:
+            if metric in (metrics := em.evaluate(node)):
+                value = metrics[metric]
+    if value is None:
+        if metric in (metrics := node.metrics()):
+            value = metrics[metric]
+        else:
+            raise RuntimeError(f"Unable to query {metric} for node {node}.")
+
+    return value
