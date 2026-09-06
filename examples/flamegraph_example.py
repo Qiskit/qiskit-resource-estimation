@@ -11,7 +11,6 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.quantum_info import SparseObservable
 
 from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.graphs.flamegraph import to_speedscope
 from ft_resource_estimation.graphs.metrics import Fidelity
 from ft_resource_estimation.error_models import TwoGrossErrorModel
 from ft_resource_estimation.topologies import Linear
