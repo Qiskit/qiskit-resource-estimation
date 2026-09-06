@@ -160,7 +160,30 @@ class CallGraph:
         allow_incomplete_basis: bool = True,
         error_models: dict[type[Node], "ErrorModel[Any]"] | None = None,
         overwrite: bool = False,
-    ):
+    ) -> None:
+        """Dump a flamegraph for the target metric in a file.
+
+        The file contains the format
+
+            main(1x); node1(31x); node2(5x); final(100x) num_samples_as_int
+            <more lines>
+
+        and can be read with a standard visualizer.
+
+        Args:
+            filename: The filename to write to.
+            metric: The target metric, e.g. ``Fidelity()``. The fidelity classes themselves define
+                how "a sample" is defined, see there for more details.
+            basis: The basis to unroll to. If not provided, unrolls as long as leaves are defined.
+            allow_incomplete_basis: If ``False``, this method will fail if it cannot unroll the
+                graph to the target basis. If ``True`` it will simply return the most basic
+                nodes.
+            error_models: A mapping from node type to error model. The first model whose
+                ``supports(node)`` returns True is used; keys communicate intent but are not
+                used for lookup.
+            overwrite: If ``False``, an error is raised if ``filename`` exists already. If ``True``,
+                the file will be overwritten.
+        """
         if self._root is None:
             raise RuntimeError("Graph seems to be empty!")
 
