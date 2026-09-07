@@ -4,7 +4,6 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Literal
 from .isa import GateType
 from ...topologies.topology import BaseTopology, Allocation
 from ...graphs.nodes import Node

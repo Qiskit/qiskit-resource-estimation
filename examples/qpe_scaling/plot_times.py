@@ -43,12 +43,12 @@ ax1.set_ylabel("fidelity")
 # ax1.set_ylim(top=2, bottom=1e-10)
 
 custom_lines = [
-    Line2D([0], [0], color='k', linestyle='--', label='Total fidelity'),
-    Line2D([0], [0], color='k', linestyle='-.', label='Magic'),
-    Line2D([0], [0], color='k', linestyle=':', label='Entanglement'),
+    Line2D([0], [0], color="k", linestyle="--", label="Total fidelity"),
+    Line2D([0], [0], color="k", linestyle="-.", label="Magic"),
+    Line2D([0], [0], color="k", linestyle=":", label="Entanglement"),
 ]
 ax1.grid()
-ax1.legend(handles=custom_lines) 
+ax1.legend(handles=custom_lines)
 
 ax2.grid()
 ax2.set_xlabel("num Ising qubits")
