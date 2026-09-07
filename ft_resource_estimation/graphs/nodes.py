@@ -4,10 +4,60 @@
 
 from __future__ import annotations
 from abc import abstractmethod, ABC
+from enum import Enum
 
-from qiskit.circuit import Instruction
+import numpy as np
+from qiskit.circuit import Instruction, ParameterExpression
 
 from .metrics import Metric, Value
+
+ROTATIONS = {"rx", "ry", "rz", "rzz", "ryy", "rxx", "rzx", "p", "pauli_product_rotation"}
+
+
+class AngleClass(Enum):
+    """Represents different angle classes that are important to resource estimations."""
+
+    PAULI = 0
+    CLIFFORD = 1
+    T = 2
+    ROTATION = 3
+
+
+def _is_multiple_of_pi_k(angle: float, k: int) -> bool:
+    modulo = angle * k / np.pi
+    remainder = modulo % 1.0
+    return np.isclose(remainder, 0) or np.isclose(remainder, 1)
+
+
+def get_angle_class(angle: float) -> AngleClass:
+    """Classify a rotation angle into the fidelity-relevant bucket it belongs to."""
+    if _is_multiple_of_pi_k(angle, 1):
+        return AngleClass.PAULI
+    if _is_multiple_of_pi_k(angle, 2):
+        return AngleClass.CLIFFORD
+    if _is_multiple_of_pi_k(angle, 4):
+        return AngleClass.T
+    return AngleClass.ROTATION
+
+
+def _param_key(instruction: Instruction) -> tuple | None:
+    """Return a hashable key for an instruction's angle class, or None if not applicable.
+
+    Only single-angle gates (see `_SINGLE_ANGLE_GATES`/`_PAULI_ANGLE_GATES`) are classified;
+    other gates keep today's shape-only identity. Unbound parameters (`ParameterExpression`)
+    can't be classified either, so they also fall back to `None`.
+    """
+    name = instruction.name
+    if name in ROTATIONS:
+        angle = instruction.params[0]
+    elif name == "PauliEvolution":
+        angle = instruction.params[0] / 2
+    else:
+        return None
+
+    if isinstance(angle, ParameterExpression):
+        return None
+    return (get_angle_class(angle),)
 
 
 class Node(ABC):
@@ -109,7 +159,9 @@ class InstructionNode(Node):
             raise TypeError(
                 f"{type(self).__name__} has no instruction. " "Override this method in a subclass."
             )
-        return hash((self._inst.name, self._inst.num_qubits, self._inst.num_clbits))
+        return hash(
+            (self._inst.name, self._inst.num_qubits, self._inst.num_clbits, _param_key(self._inst))
+        )
 
     def operations(self) -> dict[Node, int] | None:
         if self._inst is None:
