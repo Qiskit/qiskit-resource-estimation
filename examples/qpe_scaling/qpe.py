@@ -10,10 +10,11 @@ from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.quantum_info import SparseObservable
 
 from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.error_models import GrossErrorModel, TwoGrossErrorModel
+from ft_resource_estimation.error_models import TwoGrossErrorModel  # , GrossErrorModel
 from ft_resource_estimation.topologies import Linear
-from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
-from ft_resource_estimation.topologies.topology import Allocation
+
+# from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
+# from ft_resource_estimation.topologies.topology import Allocation
 
 
 def estimate_qpe(n: int, num_eval_qubits: int) -> QuantumCircuit:

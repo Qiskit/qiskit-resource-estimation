@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 
 files = [
     ("./qpe_swaproute_g1p3.npy", "Gross ($p=10^{-3}$)", "lightsalmon"),

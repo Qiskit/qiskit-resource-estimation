@@ -9,8 +9,9 @@ from qiskit.quantum_info import SparseObservable
 from ft_resource_estimation.graphs import CallGraph, InstructionNode
 from ft_resource_estimation.error_models import GrossErrorModel
 from ft_resource_estimation.topologies import Linear
-from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
-from ft_resource_estimation.topologies.topology import Allocation
+
+# from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting
+# from ft_resource_estimation.topologies.topology import Allocation
 
 # define the Hamiltonian for QPE
 n = 100

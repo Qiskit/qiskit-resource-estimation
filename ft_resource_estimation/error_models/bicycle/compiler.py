@@ -13,7 +13,7 @@ from qiskit.quantum_info import get_clifford_gate_names
 
 from .error_rates import ErrorRates
 from .isa import GateType
-from ...graphs.nodes import AngleClass, InstructionNode, angle_class
+from ...graphs.nodes import AngleClass, InstructionNode, get_angle_class
 from ...topologies.topology import BaseTopology
 
 CLIFFORD_GATES = get_clifford_gate_names()
@@ -62,7 +62,7 @@ def get_gate_type(inst) -> GateType:
         if name == "PauliEvolution":
             angle /= 2
 
-        return ANGLE_CLASS_TO_GATE_TYPE[angle_class(angle)]
+        return ANGLE_CLASS_TO_GATE_TYPE[get_angle_class(angle)]
     elif name in {"x", "y", "z"}:
         return GateType.Pauli
     elif name == "t":

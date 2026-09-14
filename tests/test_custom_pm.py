@@ -67,7 +67,6 @@ class TestCustomPassManager(unittest.TestCase):
         result = CallGraph(InstructionNode(QFTGate(n))).estimate(
             basis=["QFT"], error_models={InstructionNode: model}
         )
-        print(result[Fidelity()])
         self.assertIn(Fidelity(), result)
         self.assertGreater(result[Fidelity()], 0)
 
