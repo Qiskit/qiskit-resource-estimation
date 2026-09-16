@@ -8,7 +8,7 @@ import numpy as np
 from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.circuit.library import PhaseGate
 
-from ft_resource_estimation.graphs.nodes import InstructionNode, Node
+from qiskit_resource_estimation.graphs.nodes import InstructionNode, Node
 
 from .aqft import AQFT
 

@@ -5,11 +5,11 @@
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import QFTGate, MCXGate
 
-from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.graphs.metrics import Fidelity
-from ft_resource_estimation.error_models import GrossErrorModel
-from ft_resource_estimation.topologies import Linear
-from ft_resource_estimation.library import Add
+from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs.metrics import Fidelity
+from qiskit_resource_estimation.error_models import GrossErrorModel
+from qiskit_resource_estimation.topologies import Linear
+from qiskit_resource_estimation.library import Add
 
 
 def build_circuit(num_qubits):

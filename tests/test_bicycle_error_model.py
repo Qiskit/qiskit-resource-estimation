@@ -6,11 +6,11 @@ import unittest
 import numpy as np
 from qiskit.circuit import QuantumCircuit
 
-from ft_resource_estimation.graphs.callgraph import CallGraph
-from ft_resource_estimation.graphs.nodes import InstructionNode
-from ft_resource_estimation.graphs.metrics import Fidelity
-from ft_resource_estimation.error_models import GrossErrorModel
-from ft_resource_estimation.topologies import Linear
+from qiskit_resource_estimation.graphs.callgraph import CallGraph
+from qiskit_resource_estimation.graphs.nodes import InstructionNode
+from qiskit_resource_estimation.graphs.metrics import Fidelity
+from qiskit_resource_estimation.error_models import GrossErrorModel
+from qiskit_resource_estimation.topologies import Linear
 
 
 class TestGrossErrorModel(unittest.TestCase):

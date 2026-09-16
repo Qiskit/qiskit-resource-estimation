@@ -1,63 +1,30 @@
 
-# Resource estimation for FT programs
-
-Fast resource estimation for fault-tolerant quantum circuits, without full compilation.
+# Qiskit resource estimation
 
 > [!NOTE]
 > This repository is under active development and the code here should not be considered stable.
 
-## Motivation
+Qiskit resource estimation provides an extensible framework for fast, approximative resource estimation for fault-tolerant programs, without full compilation. The main design principle is being extensible in both program building blocks
+(or `Node`s) and target metrics that can be tracked.
 
-What algorithms can we hope to run on the fault-tolerant machines we are building?
-What practical advantage does the Gross code have over the surface code in absolute numbers?
-Which synthesis is optimal for my algorithm?
-How low do physical error rates have to be to achieve a target accuracy?
-
-These questions can be answered precisely — either by analytic derivation or by full compilation to the target architecture — but that can take hours to days.
-We oftentimes do not need precise answers.
-To gauge feasibility or compare methods, fast order-of-magnitude estimates are sufficient.
-
-This tool is built for exactly that: **reliable enough for resource comparisons, fast enough to run on a laptop**.
-
-## Goals and non-goals
-
-**Goals** — provide a generic, pluggable framework to efficiently estimate:
-1. The three FTQC ingredients: magic (T gates), entanglement (Clifford operations), and routing.
-2. The estimated circuit fidelity on a given architecture.
-3. The estimated runtime. (Not available yet)
-
-The core abstractions (`Node`, `Metric`, `ErrorModel`, `BaseTopology`) make no assumptions about gate sets or hardware. Users can define their own node types, metrics, and error models without touching any Qiskit or bicycle-code code.
-Qiskit circuits and the Gross-code bicycle ISA are built-in options, not requirements.
-
-**Non-goals**
-- We don't define a circuit description language: algorithms are expressed using whatever interface the user prefers.
-- We don't build a Gross-code compiler: fidelity estimates are derived from lightweight ISA-level formulas, not full compilation.
-- We don't compile the full circuit: for exact resource counts, use a full compiler such as Qiskit + the bicycle architecture compiler.
-
----
-
-## Installation
-
-```bash
-pip install -e .
-```
-
----
-
-## Quick start
-
+We do, however, provide a [Qiskit](https://github.com/Qiskit/qiskit]-compatible error model for [Gross-codes](https://arxiv.org/abs/2506.03094) out of the box. This allows to take your existing Qiskit programs and easily obtain first estimations:
 ```python
-from qiskit.circuit.library import QFTGate
-from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.graphs.metrics import Fidelity
-from ft_resource_estimation.error_models import GrossErrorModel
-from ft_resource_estimation.topologies import Linear
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import phase_estimation, RZGate
+
+from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs.metrics import Fidelity
+from qiskit_resource_estimation.error_models import GrossErrorModel
+from qiskit_resource_estimation.topologies import Linear
+
+# Start from your Qiskit circuit
+circuit = phase_estimation(50, RZGate(0.2))
 
 # 1. Build a call graph from a Qiskit gate
-graph = CallGraph(InstructionNode(QFTGate(20)))
+graph = CallGraph.from_circuit(circuit)
 
 # 2. Define the hardware
-topo = Linear(num_modules=2)
+topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
 error_model = GrossErrorModel(topology=topo, p=3)  # p=3 → physical error rate 1e-3
 
 # 3. Estimate metrics
@@ -65,7 +32,27 @@ metrics = graph.estimate(error_models={InstructionNode: error_model})
 print("Fidelity:", metrics[Fidelity()])
 ```
 
----
+## Purpose (and non-goals)
+
+The purpose of this package is to provide an extensible framework for resource estimations.
+The program is represented in a `CallGraph` datastructure with the abstractions
+* `Node` - a node in callgraph, extensible to custom objects (block encodings, oracles, ...)
+* `ErrorModel` - an error model taking a `Node` and returning a dictionary of `{Metric: Value}` 
+
+The `CallGraph` can then accumulate metrics across the nodes. See for
+example the `CallGraph.estimate` method to estimate the metrics and the 
+`CallGraph.dump_flamegraph` method to generate a flamegraph for the program.
+
+This package is _not_ providing a program description language (`Node`s can be backed by 
+arbitrary objects, e.g. by Qiskit circuits) and is not building a compiler (but the `ErrorModel` 
+allows to plug-in arbitrary compilers).
+
+## Installation
+
+Simply 
+```bash
+pip install -e .
+```
 
 ## Code structure
 
@@ -77,7 +64,7 @@ The core data structure is a `CallGraph`: a directed acyclic graph (backed by `r
 
 ```
 QFT(20) ─── H x 20
-         └── CPhase x 190
+      └── CPhase x 190
 ```
 
 This hierarchical representation lets you count operations at any level of abstraction without simulating the circuit.
@@ -121,10 +108,6 @@ node = InstructionNode(MCXGate(5))
 graph = CallGraph(node)
 ```
 
-**Subclassing** `InstructionNode` is how you add library gates with hand-written decompositions. The built-in library (`ft_resource_estimation/library/`) provides `AQFT` and `Add` as examples.
-
-**Building a call graph from a circuit** uses `CallGraph.from_circuit(qc)`, which wraps each gate in the circuit as an `InstructionNode` and unrolls their definitions.
-
 ### Metrics
 
 `Metric` is an abstract class that defines how a resource quantity accumulates across nodes:
@@ -135,11 +118,6 @@ class Metric(ABC):
     def repeat(self, v, n): ...    # how to scale by repetition count (e.g. v^n, v*n)
     def identity(self): ...        # neutral element
 ```
-
-The library ships with:
-- `Fidelity` — multiplicative (`combine = a*b`, `repeat = v^n`)
-- `TCount` — additive (`combine = a+b`, `repeat = v*n`)
-- `InFidelity`, `TFidelity`, `InterFidelity`, `RoutingFidelity` — fidelity breakdown components
 
 You can define entirely custom metrics by subclassing `Metric` and returning them from `node.metrics()`, with no dependency on Qiskit or any error model.
 
@@ -153,27 +131,7 @@ class ErrorModel(ABC, Generic[N]):
     def evaluate(self, node: N) -> dict[Metric, Value]: ...
 ```
 
-The built-in `GrossErrorModel` (and its parent `BicycleErrorModel`) implement the Gross-code bicycle ISA:
-
-1. **Routing**: the node is placed at its optimal topology location, and SWAP overhead is estimated from the average displacement.
-2. **Compilation**: the gate is transpiled to the bicycle ISA (Cliffords + `rz` + `rzz`) using a Qiskit pass manager.
-3. **Fidelity**: each ISA gate is scored by `gate_fidelity()`, which combines in-block measurement, automorphism, inter-block measurement, and T-injection error rates.
-
-A `BaseTopology` describes the hardware layout:
-
-```python
-topo = Linear(num_modules=10)         # linear chain of bicycle code modules
-topo = AllToAll(num_modules=10)       # all-to-all module connectivity
-topo = Linear(num_modules=10, num_ancillas=5)  # reserve ancilla qubits for compilation
-```
-
-Each module contains 11 data qubits and 1 pivot qubit (12 total). `Linear` places the T factory at block 0 (the left end); `AllToAll` places a factory next to every module.
-
-**Physical error rates** are set via `p`:
-- `p=3` → physical error rate ~ 10⁻³
-- `p=4` → physical error rate ~ 10⁻⁴
-
----
+The built-in `GrossErrorModel` implement the Gross-code bicycle ISA.
 
 ## Examples
 
@@ -184,17 +142,3 @@ Demonstrates both usage modes: building a call graph from a Qiskit circuit and d
 ### [`examples/qpe.py`](examples/qpe.py)
 
 Quantum phase estimation on a 100-qubit Heisenberg Hamiltonian. Illustrates how to set a `basis` to stop unrolling at `PauliEvolution` gates and how to inspect the per-metric breakdown.
-
----
-
-## Roadmap
-
-### Research questions
-
-1. **Examples** — simple: arithmetic (adders, multipliers), QPE, Grover, QAOA/Trotter; high-level: full algorithm demonstrations.
-2. **Quality benchmarks** — compare against analytic numbers on a subset of examples.
-3. **Error contributions** — what dominates: T-injection, entanglement, or routing? Does routing overhead matter more than placement?
-4. **Comparison survey** — benchmark against Qualtran and Bartiq.
-5. **Litinski pass** — run examples through the Litinski gate synthesis and compare fidelity.
-6. **Functional fidelity representation** — express total fidelity as a function of individual error contributions.
-7. **T factory layout** — dynamic vs. fixed; line vs. ladder vs. square allocation; optimal topology for a given algorithm.

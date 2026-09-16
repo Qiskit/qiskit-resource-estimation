@@ -13,10 +13,10 @@ from qiskit.quantum_info import get_clifford_gate_names
 from qiskit.transpiler import PassManager, generate_preset_pass_manager
 from qiskit.transpiler.passes import CommutativeOptimization, LitinskiTransformation
 
-from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.graphs.metrics import Fidelity
-from ft_resource_estimation.error_models import GrossErrorModel
-from ft_resource_estimation.topologies import Linear
+from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs.metrics import Fidelity
+from qiskit_resource_estimation.error_models import GrossErrorModel
+from qiskit_resource_estimation.topologies import Linear
 
 
 class CallbackCliffordT(PassManager):

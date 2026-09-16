@@ -4,9 +4,9 @@
 
 import unittest
 
-from ft_resource_estimation.graphs.nodes import Node
-from ft_resource_estimation.graphs.callgraph import CallGraph
-from ft_resource_estimation.graphs.metrics import Metric, Value
+from qiskit_resource_estimation.graphs.nodes import Node
+from qiskit_resource_estimation.graphs.callgraph import CallGraph
+from qiskit_resource_estimation.graphs.metrics import Metric, Value
 
 
 class Banana(Metric):

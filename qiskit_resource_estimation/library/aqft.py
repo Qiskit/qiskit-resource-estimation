@@ -6,7 +6,7 @@ import numpy as np
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import HGate, CPhaseGate
 
-from ft_resource_estimation.graphs.nodes import InstructionNode, Node
+from qiskit_resource_estimation.graphs.nodes import InstructionNode, Node
 
 
 class AQFT(InstructionNode):
