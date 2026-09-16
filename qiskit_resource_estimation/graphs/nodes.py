@@ -26,7 +26,7 @@ class AngleClass(Enum):
 def _is_multiple_of_pi_k(angle: float, k: int) -> bool:
     modulo = angle * k / np.pi
     remainder = modulo % 1.0
-    return np.isclose(remainder, 0) or np.isclose(remainder, 1)
+    return bool(np.isclose(remainder, 0) or np.isclose(remainder, 1))
 
 
 def get_angle_class(angle: float) -> AngleClass:

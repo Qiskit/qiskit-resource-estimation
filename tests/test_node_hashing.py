@@ -13,7 +13,7 @@ import unittest
 import numpy as np
 from qiskit.circuit.library import RZGate, CXGate
 
-from ft_resource_estimation.graphs.nodes import InstructionNode
+from qiskit_resource_estimation.graphs.nodes import InstructionNode
 
 
 class TestInstructionNodeAngleHashing(unittest.TestCase):

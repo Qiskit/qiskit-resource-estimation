@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
 
-from ft_resource_estimation.graphs.nodes import Node
+from qiskit_resource_estimation.graphs.nodes import Node
 
 
 class Allocation(Enum):

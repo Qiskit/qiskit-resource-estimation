@@ -6,7 +6,7 @@ import unittest
 from ddt import ddt, data
 from qiskit.synthesis.qft import synth_qft_full
 
-from ft_resource_estimation.error_models.bicycle.compiler import default_pm
+from qiskit_resource_estimation.error_models.bicycle.compiler import default_pm
 
 
 @ddt

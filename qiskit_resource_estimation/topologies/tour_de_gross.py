@@ -5,7 +5,7 @@
 from functools import partial
 import numpy as np
 
-from ft_resource_estimation.graphs.nodes import Node
+from qiskit_resource_estimation.graphs.nodes import Node
 from .topology import BaseTopology, Allocation
 
 

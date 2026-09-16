@@ -11,11 +11,11 @@ from qiskit.transpiler import AnalysisPass
 from qiskit.transpiler.passes import CommutativeOptimization, ConvertToPauliRotations
 from qiskit.quantum_info import get_clifford_gate_names
 
-from ft_resource_estimation.graphs.nodes import InstructionNode
-from ft_resource_estimation.graphs.callgraph import CallGraph
-from ft_resource_estimation.graphs.metrics import Fidelity
-from ft_resource_estimation.error_models import GrossErrorModel
-from ft_resource_estimation.topologies import Linear
+from qiskit_resource_estimation.graphs.nodes import InstructionNode
+from qiskit_resource_estimation.graphs.callgraph import CallGraph
+from qiskit_resource_estimation.graphs.metrics import Fidelity
+from qiskit_resource_estimation.error_models import GrossErrorModel
+from qiskit_resource_estimation.topologies import Linear
 
 
 class TrackOps(AnalysisPass):

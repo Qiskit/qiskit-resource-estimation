@@ -19,8 +19,8 @@ from qiskit.circuit.library import (
 )
 from qiskit.quantum_info import Pauli, SparsePauliOp
 
-from ft_resource_estimation.error_models.bicycle.compiler import get_gate_type
-from ft_resource_estimation.error_models.bicycle.isa import GateType
+from qiskit_resource_estimation.error_models.bicycle.compiler import get_gate_type
+from qiskit_resource_estimation.error_models.bicycle.isa import GateType
 
 ROTATION_GATES = [RZGate, RYGate, PhaseGate, RZZGate, RXXGate, RYYGate, RZXGate]
 
