@@ -295,7 +295,7 @@ def _eval_metric_on_node(
             if metric in (metrics := em.evaluate(node)):
                 value = metrics[metric]
     if value is None:
-        if metric in (metrics := node.metrics()):
+        if (metrics := node.metrics()) is not None and metric in metrics:
             value = metrics[metric]
         else:
             raise RuntimeError(f"Unable to query {metric} for node {node}.")

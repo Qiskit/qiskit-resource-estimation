@@ -45,7 +45,6 @@ circuit.compose(qpe, inplace=True)
 # define the error model and topology
 topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
 routing = TeleportationRouting(allocation=Allocation.BEST)
-routing = None  # or SwapRouting()
 error_model = TwoGrossErrorModel(topology=topo, p=4, routing=routing)
 
 basis = ["qft_dg", "PauliEvolution"]
@@ -60,5 +59,3 @@ graph.dump_flamegraph(
     error_models={InstructionNode: error_model},
     overwrite=True,
 )
-
-flame = graph.flamegraph(Fidelity(), basis=basis, error_models={InstructionNode: error_model})
