@@ -1,20 +1,16 @@
 # Copyright IBM 2026
 
-"""Manual verification script for CallGraph.flamegraph().
-
-Checks: (1) the width-additivity invariant (every node's width equals the sum of
-its children's widths), and (2) the root's folded fidelity matches estimate()'s total.
-"""
+"""Flamegraph QPE example."""
 
 from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.circuit import QuantumCircuit
 from qiskit.quantum_info import SparseObservable
 
-from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.graphs.metrics import Fidelity
-from ft_resource_estimation.error_models import TwoGrossErrorModel
-from ft_resource_estimation.topologies import Linear
-from ft_resource_estimation.error_models.bicycle.routing import TeleportationRouting, Allocation
+from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs.metrics import Fidelity
+from qiskit_resource_estimation.error_models import TwoGrossErrorModel
+from qiskit_resource_estimation.topologies import Linear
+from qiskit_resource_estimation.error_models.bicycle.routing import TeleportationRouting, Allocation
 
 n = 50
 num_eval_qubits = 50
@@ -40,15 +36,13 @@ qpe = phase_estimation(num_eval_qubits, unitary)
 circuit.append(initial, circuit.qubits[-n:])
 circuit.compose(qpe, inplace=True)
 
-# inst = circuit.to_instruction()
-
 # define the error model and topology
 topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
 routing = TeleportationRouting(allocation=Allocation.BEST)
 error_model = TwoGrossErrorModel(topology=topo, p=4, routing=routing)
 
-basis = ["qft_dg", "PauliEvolution"]
-# basis = None
+# basis = ["qft_dg", "PauliEvolution"]
+basis = None
 
 graph = CallGraph.from_circuit(circuit)
 

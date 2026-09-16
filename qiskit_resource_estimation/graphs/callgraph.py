@@ -203,10 +203,8 @@ class CallGraph:
             node = nodes[node_idx]
 
             if node.name().lower() in basis:
-                print(f"node.name() ({node.name().lower()}) is in basis {basis}")
                 leafs.append(node_idx)
             else:
-                print(f"node.name() ({node.name().lower()}) is not in")
                 children = set(self._graph.successor_indices(node_idx))
 
                 if len(children) == 0:
@@ -262,7 +260,6 @@ class CallGraph:
         node itself is included as first element.
         """
         index_to_node = dict(enumerate(self._graph.nodes()))
-        print(index_to_node)
 
         history = [index_to_node[node_idx]]
         counts = []

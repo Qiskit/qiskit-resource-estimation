@@ -7,9 +7,9 @@ import tempfile
 
 from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_clifford_t_pass_manager
-from ft_resource_estimation.graphs import CallGraph, InstructionNode
-from ft_resource_estimation.error_models import ErrorModel
-from ft_resource_estimation.graphs.metrics import TCount
+from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.error_models import ErrorModel
+from qiskit_resource_estimation.graphs.metrics import TCount
 
 
 class TCounts(ErrorModel[InstructionNode]):
