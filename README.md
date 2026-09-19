@@ -7,7 +7,7 @@
 Qiskit resource estimation provides an extensible framework for fast, approximative resource estimation for fault-tolerant programs, without full compilation. The main design principle is being extensible in both program building blocks
 (or `Node`s) and target metrics that can be tracked.
 
-We do, however, provide a [Qiskit](https://github.com/Qiskit/qiskit]-compatible error model for [Gross-codes](https://arxiv.org/abs/2506.03094) out of the box. This allows to take your existing Qiskit programs and easily obtain first estimations:
+We do, however, provide a [Qiskit](https://github.com/Qiskit/qiskit)-compatible error model for [Gross-codes](https://arxiv.org/abs/2506.03094) out of the box. This allows to take your existing Qiskit programs and easily obtain first estimations:
 ```python
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import phase_estimation, RZGate
