@@ -16,7 +16,7 @@ packages = ["qiskit_resource_estimation"]
 examples = [ # dependency group for running the examples
   "matplotlib",
 ]
-dev = ["black", "ruff", "pyrefly"]
+dev = ["black", "ruff", "pyrefly", "ddt"]
 
 [tool.black]
 line-length = 100
