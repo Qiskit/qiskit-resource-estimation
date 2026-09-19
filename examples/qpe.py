@@ -6,7 +6,7 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.quantum_info import SparseObservable
 
-from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs import CallGraph
 from qiskit_resource_estimation.error_models import GrossErrorModel
 from qiskit_resource_estimation.topologies import Linear
 
@@ -54,7 +54,7 @@ graph = CallGraph.from_circuit(circuit)
 
 metrics = graph.estimate(
     basis=basis,
-    error_models={InstructionNode: error_model},
+    error_models=[error_model],
 )
 
 print("\nResource graph counts:")

@@ -8,7 +8,6 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import MCXGate
 from qiskit import transpile, generate_preset_pass_manager
 from qiskit.transpiler import AnalysisPass
-from qiskit.transpiler.passes import CommutativeOptimization, ConvertToPauliRotations
 from qiskit.quantum_info import get_clifford_gate_names
 
 from qiskit_resource_estimation.graphs.nodes import InstructionNode
@@ -68,13 +67,13 @@ class TestAncillaAllocation(unittest.TestCase):
 
         # node = InstructionNode(gate)
         graph = CallGraph.from_circuit(circuit)
-        fidelity_no_ancilla = graph.estimate(
-            basis=["mcx"], error_models={InstructionNode: em_no_ancilla}
-        )[Fidelity()]
+        fidelity_no_ancilla = graph.estimate(basis=["mcx"], error_models=[em_no_ancilla])[
+            Fidelity()
+        ]
 
-        fidelity_with_ancilla = graph.estimate(
-            basis=["mcx"], error_models={InstructionNode: em_with_ancilla}
-        )[Fidelity()]
+        fidelity_with_ancilla = graph.estimate(basis=["mcx"], error_models=[em_with_ancilla])[
+            Fidelity()
+        ]
 
         self.assertGreater(fidelity_with_ancilla, fidelity_no_ancilla)
 
@@ -104,7 +103,7 @@ class TestAncillaAllocation(unittest.TestCase):
 
         # Run the estimation, triggering the pass
         graph = CallGraph.from_circuit(circuit)
-        _ = graph.estimate(basis=["mcx"], error_models={InstructionNode: em})
+        _ = graph.estimate(basis=["mcx"], error_models=[em])
 
         # Get the reference count
         reference = QuantumCircuit(num_qubits + num_ancillas)

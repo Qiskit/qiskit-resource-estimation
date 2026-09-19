@@ -5,7 +5,7 @@
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import QFTGate, MCXGate
 
-from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs import CallGraph
 from qiskit_resource_estimation.graphs.metrics import Fidelity
 from qiskit_resource_estimation.error_models import GrossErrorModel
 from qiskit_resource_estimation.topologies import Linear
@@ -44,13 +44,13 @@ error_model = GrossErrorModel(topology=topo, p=3)
 
 # build a call graph from a circuit and estimate metrics
 graph = build_circuit(num_qubits)
-metrics = graph.estimate(error_models={InstructionNode: error_model})
+metrics = graph.estimate(error_models=[error_model])
 print("\nCircuit example:")
 print("Estimated fidelity:", metrics[Fidelity()])
 
 # library nodes (Add) are InstructionNode subclasses — same error model applies
 add = Add(num_qubits, apply_qft=True)
 graph = CallGraph(add)
-metrics = graph.estimate(error_models={InstructionNode: error_model})
+metrics = graph.estimate(error_models=[error_model])
 print("\nGate example:")
 print("Estimated fidelity:", metrics[Fidelity()])

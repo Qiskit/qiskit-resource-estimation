@@ -57,7 +57,7 @@ class TestFlamegraph(unittest.TestCase):
         graph.dump_flamegraph(
             f.name,
             TCount(),
-            error_models={InstructionNode: TCounts()},
+            error_models=[TCounts()],
             overwrite=True,
             basis=["ccx", "t", "tdg", "h"],
         )

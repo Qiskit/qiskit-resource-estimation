@@ -110,7 +110,7 @@ class CallGraph:
     def estimate(
         self,
         basis: list[str] | None = None,
-        error_models: dict[type[Node], "ErrorModel[Any]"] | None = None,
+        error_models: list["ErrorModel[Any]"] | None = None,
     ) -> dict[Metric, Value]:
         """Estimate metrics by accumulating over all basis nodes.
 
@@ -136,15 +136,13 @@ class CallGraph:
         error_models = error_models or {}
 
         for node, count in counts.items():
-            node_metrics = node.metrics() or {}
-            em = next((m for m in error_models.values() if m.supports(node)), None)
-            em_metrics = em.evaluate(node) if em is not None else {}
-
-            # merge: error model overwrites node value for same key; disjoint keys kept
-            merged = {**node_metrics, **em_metrics}
+            metrics = node.metrics() or {}
+            for em in error_models or []:
+                if em.supports(node):
+                    metrics.update(em.evaluate(node))
 
             # scale by count and fold into running totals
-            for metric, value in merged.items():
+            for metric, value in metrics.items():
                 scaled = metric.repeat(value, count)
                 totals[metric] = (
                     metric.combine(totals[metric], scaled) if metric in totals else scaled
@@ -231,7 +229,7 @@ class CallGraph:
 
                 # format the flamegraph string, which has the form
                 # root; leaf1; leaf2; final_leaf cost
-                # we're labeling the leafs with "<name>(<count> x)" to include the count in the flamegraph
+                # we're labeling the leafs with "<name>(<count> x)" to include counts in the flamegraph
                 fmt = "; ".join(
                     f"{ancestor.name()}({mult}x)"
                     for ancestor, mult in zip(ancestry[::-1], multiplicity[::-1])
@@ -284,13 +282,12 @@ class CallGraph:
 
 
 def _eval_metric_on_node(
-    node: Node, metric: Metric, error_models: dict[type[Node], "ErrorModel[Any]"] | None = None
+    node: Node, metric: Metric, error_models: list["ErrorModel[Any]"] | None = None
 ) -> Value:
     value = None
-    if error_models is not None:
-        if (em := error_models.get(type(node))) is not None:
-            if metric in (metrics := em.evaluate(node)):
-                value = metrics[metric]
+    for em in error_models or []:
+        if em.supports(node) and metric in (metrics := em.evaluate(node)):
+            value = metrics[metric]
     if value is None:
         if (metrics := node.metrics()) is not None and metric in metrics:
             value = metrics[metric]

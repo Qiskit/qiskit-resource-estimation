@@ -53,8 +53,8 @@ class Metric(ABC):
         return type(self) is type(other)
 
 
-class Fidelity(Metric):
-    """Multiplicative fidelity metric."""
+class MultiplicativeMetric(Metric):
+    """A generic multiplicative metric."""
 
     def combine(self, a: Value, b: Value) -> Value:
         return a * b
@@ -82,8 +82,8 @@ class Fidelity(Metric):
         return samples
 
 
-class TCount(Metric):
-    """Additive T-gate count metric."""
+class AdditiveMetric(Metric):
+    """A generic additive metric."""
 
     def combine(self, a: Value, b: Value) -> Value:
         return a + b
@@ -97,6 +97,18 @@ class TCount(Metric):
     def values_to_samples(self, values, num_samples):
         # disregard samples, not required here
         return list(map(int, values))
+
+
+class Fidelity(MultiplicativeMetric):
+    """Multiplicative fidelity metric."""
+
+    ...
+
+
+class TCount(AdditiveMetric):
+    """Additive T-gate count metric."""
+
+    ...
 
 
 class InFidelity(Fidelity): ...

@@ -28,7 +28,7 @@ topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
 error_model = GrossErrorModel(topology=topo, p=3)  # p=3 → physical error rate 1e-3
 
 # 3. Estimate metrics
-metrics = graph.estimate(error_models={InstructionNode: error_model})
+metrics = graph.estimate(error_models=[error_model])
 print("Fidelity:", metrics[Fidelity()])
 ```
 
@@ -85,7 +85,7 @@ n_hadamards = graph.count("h")
 ```python
 metrics = graph.estimate(
     basis=["ccx", "mcx"],
-    error_models={InstructionNode: error_model},
+    error_models=[error_model],
 )
 ```
 

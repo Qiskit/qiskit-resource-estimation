@@ -6,7 +6,7 @@ from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.circuit import QuantumCircuit
 from qiskit.quantum_info import SparseObservable
 
-from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs import CallGraph
 from qiskit_resource_estimation.graphs.metrics import Fidelity
 from qiskit_resource_estimation.error_models import TwoGrossErrorModel
 from qiskit_resource_estimation.topologies import Linear
@@ -50,6 +50,6 @@ graph.dump_flamegraph(
     "qpe.pl",
     metric=Fidelity(),
     basis=basis,
-    error_models={InstructionNode: error_model},
+    error_models=[error_model],
     overwrite=True,
 )

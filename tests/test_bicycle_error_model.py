@@ -7,7 +7,6 @@ import numpy as np
 from qiskit.circuit import QuantumCircuit
 
 from qiskit_resource_estimation.graphs.callgraph import CallGraph
-from qiskit_resource_estimation.graphs.nodes import InstructionNode
 from qiskit_resource_estimation.graphs.metrics import Fidelity
 from qiskit_resource_estimation.error_models import GrossErrorModel
 from qiskit_resource_estimation.topologies import Linear
@@ -20,7 +19,7 @@ class TestGrossErrorModel(unittest.TestCase):
 
     def fidelity(self, circuit: QuantumCircuit, basis: list[str] | None = None) -> float:
         graph = CallGraph.from_circuit(circuit)
-        result = graph.estimate(error_models={InstructionNode: self.model}, basis=basis)
+        result = graph.estimate(error_models=[self.model], basis=basis)
         return float(result[Fidelity()])
 
     def test_pauli_and_reset_circuit_has_fidelity_one(self):

@@ -9,7 +9,7 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import PauliEvolutionGate, phase_estimation
 from qiskit.quantum_info import SparseObservable
 
-from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs import CallGraph
 from qiskit_resource_estimation.error_models import TwoGrossErrorModel  # , GrossErrorModel
 from qiskit_resource_estimation.topologies import Linear
 
@@ -59,7 +59,7 @@ def estimate_qpe(n: int, num_eval_qubits: int) -> QuantumCircuit:
     # print(graph.count_basis(basis))
     metrics = graph.estimate(
         basis=basis,
-        error_models={InstructionNode: error_model},
+        error_models=[error_model],
     )
     end = time()
 

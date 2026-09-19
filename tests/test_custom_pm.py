@@ -51,7 +51,7 @@ class TestCustomPassManager(unittest.TestCase):
 
         custom_model = GrossErrorModel(topology=topo, p=3, pass_manager=CallbackCliffordT(count))
 
-        _ = CallGraph(InstructionNode(gate)).estimate(error_models={InstructionNode: custom_model})
+        _ = CallGraph(InstructionNode(gate)).estimate(error_models=[custom_model])
         self.assertGreater(callback_calls[0], 0)
 
     def test_litinski_pm(self):
@@ -65,7 +65,7 @@ class TestCustomPassManager(unittest.TestCase):
         topo = Linear(num_modules=n // 11 + 1)
         model = GrossErrorModel(topology=topo, p=3, pass_manager=pm)
         result = CallGraph(InstructionNode(QFTGate(n))).estimate(
-            basis=["QFT"], error_models={InstructionNode: model}
+            basis=["QFT"], error_models=[model]
         )
         self.assertIn(Fidelity(), result)
         self.assertGreater(result[Fidelity()], 0)
