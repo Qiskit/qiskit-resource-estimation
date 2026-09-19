@@ -5,7 +5,7 @@ from .nodes import Sentinel, Node, InstructionNode
 
 __all__ = [
     "CallGraph",
+    "InstructionNode",
     "Node",
     "Sentinel",
-    "InstructionNode",
 ]

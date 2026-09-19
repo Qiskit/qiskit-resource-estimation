@@ -7,9 +7,9 @@ import tempfile
 
 from qiskit import QuantumCircuit
 from qiskit.transpiler import generate_preset_clifford_t_pass_manager
-from qiskit_resource_estimation.graphs import CallGraph, InstructionNode
+from qiskit_resource_estimation.graphs import CallGraph, InstructionNode, Node
 from qiskit_resource_estimation.error_models import ErrorModel
-from qiskit_resource_estimation.graphs.metrics import TCount
+from qiskit_resource_estimation.graphs.metrics import TCount, Metric, Value
 
 
 class TCounts(ErrorModel[InstructionNode]):
@@ -17,10 +17,10 @@ class TCounts(ErrorModel[InstructionNode]):
         super().__init__()
         self.pm = generate_preset_clifford_t_pass_manager()
 
-    def supports(self, node):
+    def supports(self, node: Node) -> bool:
         return isinstance(node, InstructionNode)
 
-    def evaluate(self, node):
+    def evaluate(self, node: InstructionNode) -> dict[Metric, Value]:
         circuit = QuantumCircuit(node.num_qubits())
         circuit.append(node.instruction, circuit.qubits)
 
@@ -52,27 +52,27 @@ class TestFlamegraph(unittest.TestCase):
         circuit.append(block1.to_instruction(), [0])
         circuit.append(block2.to_instruction(), [1, 2])
 
-        f = tempfile.NamedTemporaryFile("w+")
-        graph = CallGraph.from_circuit(circuit)
-        graph.dump_flamegraph(
-            f.name,
-            TCount(),
-            error_models=[TCounts()],
-            overwrite=True,
-            basis=["ccx", "t", "tdg", "h"],
-        )
+        with tempfile.NamedTemporaryFile("w+") as f:
+            graph = CallGraph.from_circuit(circuit)
+            graph.dump_flamegraph(
+                f.name,
+                TCount(),
+                error_models=[TCounts()],
+                overwrite=True,
+                basis=["ccx", "t", "tdg", "h"],
+            )
 
-        expected = {
-            "root(1x); h(1x) 0",
-            "root(1x); t(1x) 1",
-            "root(1x); ccx(1x) 7",
-            "root(1x); block1(1x); t(2x) 2",
-            "root(1x); block2(1x); block1(2x); t(2x) 4",
-            "root(1x); block2(1x); tdg(1x) 1",
-        }
+            expected = {
+                "root(1x); h(1x) 0",
+                "root(1x); t(1x) 1",
+                "root(1x); ccx(1x) 7",
+                "root(1x); block1(1x); t(2x) 2",
+                "root(1x); block2(1x); block1(2x); t(2x) 4",
+                "root(1x); block2(1x); tdg(1x) 1",
+            }
 
-        actual = set(line.strip() for line in f.readlines())
-        self.assertEqual(expected, actual)
+            actual = set(line.strip() for line in f.readlines())
+            self.assertEqual(expected, actual)
 
 
 if __name__ == "__main__":

@@ -50,7 +50,7 @@ class AllToAll(BaseTopology):
     def coupling_map(self):
         return None
 
-    def magic_distance(self, index1: int, index2=None):  # noqa: ARG002
+    def magic_distance(self, index1: int, index2=None):
         """If adjacent to a factory, it returns 1."""
         return 1
 

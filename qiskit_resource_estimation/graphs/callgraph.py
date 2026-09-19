@@ -3,7 +3,7 @@
 """A call graph representation of a quantum circuit."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload, Literal
 
 from rustworkx import PyDiGraph
 from qiskit.circuit import QuantumCircuit
@@ -85,7 +85,7 @@ class CallGraph:
             basis = []
         else:
             # make name checking case insensitive
-            basis = list(name.lower() for name in basis)
+            basis = [name.lower() for name in basis]
 
         nodes = self._graph.nodes()
         to_visit = {self._root}
@@ -110,7 +110,7 @@ class CallGraph:
     def estimate(
         self,
         basis: list[str] | None = None,
-        error_models: list["ErrorModel[Any]"] | None = None,
+        error_models: list[ErrorModel[Any]] | None = None,
     ) -> dict[Metric, Value]:
         """Estimate metrics by accumulating over all basis nodes.
 
@@ -133,7 +133,7 @@ class CallGraph:
         """
         counts = self.count_basis(basis)
         totals: dict[Metric, Value] = {}
-        error_models = error_models or {}
+        error_models = error_models or []
 
         for node, count in counts.items():
             metrics = node.metrics() or {}
@@ -156,7 +156,7 @@ class CallGraph:
         metric: Metric,
         basis: list[str] | None = None,
         allow_incomplete_basis: bool = True,
-        error_models: dict[type[Node], "ErrorModel[Any]"] | None = None,
+        error_models: list[ErrorModel[Any]] | None = None,
         overwrite: bool = False,
     ) -> None:
         """Dump a flamegraph for the target metric in a file.
@@ -176,9 +176,8 @@ class CallGraph:
             allow_incomplete_basis: If ``False``, this method will fail if it cannot unroll the
                 graph to the target basis. If ``True`` it will simply return the most basic
                 nodes.
-            error_models: A mapping from node type to error model. The first model whose
-                ``supports(node)`` returns True is used; keys communicate intent but are not
-                used for lookup.
+            error_models: Error models used for evaluation. The first model whose
+                ``supports(node)`` returns True is used.
             overwrite: If ``False``, an error is raised if ``filename`` exists already. If ``True``,
                 the file will be overwritten.
         """
@@ -189,7 +188,7 @@ class CallGraph:
             basis = []
         else:
             # make name checking case insensitive
-            basis = list(name.lower() for name in basis)
+            basis = [name.lower() for name in basis]
 
         nodes = self._graph.nodes()
         to_visit = {self._root}
@@ -249,6 +248,20 @@ class CallGraph:
 
         return prod
 
+    @overload
+    def _get_ancestry(
+        self,
+        node_idx: int,
+        with_counts: Literal[False] = False,
+    ) -> list[Node]: ...
+
+    @overload
+    def _get_ancestry(
+        self,
+        node_idx: int,
+        with_counts: Literal[True] = True,
+    ) -> tuple[list[Node], list[int]]: ...
+
     def _get_ancestry(
         self, node_idx: int, with_counts: bool = False
     ) -> list[Node] | tuple[list[Node], list[int]]:
@@ -282,7 +295,7 @@ class CallGraph:
 
 
 def _eval_metric_on_node(
-    node: Node, metric: Metric, error_models: list["ErrorModel[Any]"] | None = None
+    node: Node, metric: Metric, error_models: list[ErrorModel[Any]] | None = None
 ) -> Value:
     value = None
     for em in error_models or []:

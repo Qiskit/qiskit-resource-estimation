@@ -29,6 +29,7 @@ line-length = 105
 # overlap with the use of a formatter, like Black, but we can override this behavior by
 # explicitly adding the rule.
 extend-select = ["E501"]
+ignore = ["I001"] # sort imports
 
 [tool.pyrefly]
 project-includes = ["**/*.py"]

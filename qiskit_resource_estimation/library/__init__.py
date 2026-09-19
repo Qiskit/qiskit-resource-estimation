@@ -5,4 +5,4 @@
 from .add import Add
 from .aqft import AQFT
 
-__all__ = ["Add", "AQFT"]
+__all__ = ["AQFT", "Add"]

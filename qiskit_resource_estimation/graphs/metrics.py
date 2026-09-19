@@ -102,13 +102,9 @@ class AdditiveMetric(Metric):
 class Fidelity(MultiplicativeMetric):
     """Multiplicative fidelity metric."""
 
-    ...
-
 
 class TCount(AdditiveMetric):
     """Additive T-gate count metric."""
-
-    ...
 
 
 class InFidelity(Fidelity): ...

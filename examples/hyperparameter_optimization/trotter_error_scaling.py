@@ -146,7 +146,8 @@ def plot(time: float = 0.01, max_qubits: int = 12, min_qubits: int = 2, extrapol
 
     print(f"fitted scaling exponent: alpha = {alpha:.3f}")
     print(
-        f"extrapolated error at n={extrapolate_to}: fit={extrap_fit[-1]:.3e}, bound={extrap_bound[-1]:.3e}"
+        f"extrapolated error at n={extrapolate_to}: "
+        f"fit={extrap_fit[-1]:.3e}, bound={extrap_bound[-1]:.3e}"
     )
 
 

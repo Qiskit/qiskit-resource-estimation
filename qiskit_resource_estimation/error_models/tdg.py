@@ -28,5 +28,5 @@ class TdGErrorModel(ErrorModel[InstructionNode]):
     def supports(self, node: Node) -> bool:
         return isinstance(node, InstructionNode)
 
-    def evaluate(self, node: InstructionNode) -> dict[Metric, Value]:  # noqa: ARG002
+    def evaluate(self, node: InstructionNode) -> dict[Metric, Value]:
         raise NotImplementedError("TdGErrorModel compilation is not yet implemented.")

@@ -8,11 +8,11 @@ from .bicycle.bicycle_error_models import BicycleErrorModel, GrossErrorModel, Tw
 from .tdg import TdGErrorModel
 
 __all__ = [
+    "BicycleErrorModel",
     "ErrorModel",
     "ErrorRates",
-    "gross_code",
-    "BicycleErrorModel",
     "GrossErrorModel",
     "TdGErrorModel",
     "TwoGrossErrorModel",
+    "gross_code",
 ]
