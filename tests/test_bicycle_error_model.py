@@ -68,6 +68,18 @@ class TestGrossErrorModel(unittest.TestCase):
         )
         self.assertAlmostEqual(self.fidelity(qc_both, basis=["rz"]), expected)
 
+    def test_measure(self):
+        """Test measure is supported."""
+        circuit = QuantumCircuit(2, 2)
+        circuit.measure(range(2), range(2))
+
+        graph = CallGraph.from_circuit(circuit)
+        topo = Linear(num_modules=circuit.num_qubits // 11 + 1)
+        error_model = GrossErrorModel(topology=topo, p=3)  
+        metrics = graph.estimate(error_models=[error_model])
+
+        self.assertLess(metrics[Fidelity()], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
