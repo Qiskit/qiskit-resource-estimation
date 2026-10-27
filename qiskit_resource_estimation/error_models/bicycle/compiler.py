@@ -65,7 +65,7 @@ def get_gate_type(inst) -> GateType:
         return ANGLE_CLASS_TO_GATE_TYPE[get_angle_class(angle)]
     elif name in {"x", "y", "z"}:
         return GateType.Pauli
-    elif name == "t":
+    elif name in {"t", "tdg"}:
         return GateType.T
     elif name in CLIFFORD_GATES:
         return GateType.Clifford

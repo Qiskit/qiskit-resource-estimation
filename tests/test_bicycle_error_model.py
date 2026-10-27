@@ -34,6 +34,19 @@ class TestGrossErrorModel(unittest.TestCase):
 
         self.assertAlmostEqual(self.fidelity(qc), 1.0)
 
+    def test_t_and_tdg_used(self):
+        """Test both T and Tdg gates contribute to the error."""
+        t = QuantumCircuit(1)
+        t.t(0)
+        t_fid = self.fidelity(t)
+
+        tdg = QuantumCircuit(1)
+        tdg.tdg(0)
+        tdg_fid = self.fidelity(tdg)
+
+        self.assertLess(t_fid, 1.0)
+        self.assertAlmostEqual(t_fid, tdg_fid)
+
     def test_same_shape_different_angle_class_evaluated_independently(self):
         """Regression test: estimate() must not conflate rz gates of different angle class.
 
