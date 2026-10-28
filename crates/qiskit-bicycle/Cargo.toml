@@ -1,0 +1,19 @@
+[package]
+name = "qre_bicycle"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "qiskit_bicycle_architecture_compiler"
+crate-type = ["cdylib"]
+
+[dependencies]
+bicycle_compiler = { version = "0.2.1", features = ["rsgridsynth"] }
+bicycle_cliffords = "0.2.1"
+bicycle_common = "0.2.1"
+bicycle_numerics = "0.2.1"
+bitcode = "0.6.9"
+clap = { version = "4.6.0", features = ["derive"] }
+hashbrown = "0.16.1"
+pyo3 = "0.28"
+qiskit-pyo3-ffi.workspace = true
