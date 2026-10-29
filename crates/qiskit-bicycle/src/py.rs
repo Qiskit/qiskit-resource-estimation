@@ -3,12 +3,27 @@ use pyo3::{
     exceptions::{PyTypeError, PyValueError},
     intern,
     prelude::*,
-    types::PyString,
+    sync::PyOnceLock,
+    types::{PyDict, PyString, PyType},
 };
 
-// use crate::ffi::{self, QkCircuit};
 use crate::bicycle::{CodeType, iter_pbc_circuit, measurement_table};
 use qiskit_pyo3_ffi::{self as ffi, qk_circuit_num_qubits};
+
+static QUANTUM_CIRCUIT: PyOnceLock<Py<PyType>> = PyOnceLock::new();
+
+fn qc_type(py: Python<'_>) -> &Py<PyType> {
+    QUANTUM_CIRCUIT.get_or_init(py, || {
+        py.import("qiskit")
+            .expect("qiskit module import failed")
+            .getattr("QuantumCircuit")
+            .expect("qiskit.QuantumCircuit import failed")
+            .cast::<PyType>()
+            .expect("failed casting to QuantumCircuit type")
+            .clone()
+            .unbind()
+    })
+}
 
 /// Take a Qiskit QuantumCircuit instance and run the
 /// bicycle_architecture_compiler on it.
@@ -18,14 +33,17 @@ use qiskit_pyo3_ffi::{self as ffi, qk_circuit_num_qubits};
 ///     accuracy: The physical accuracy, either ``"1e-3"`` or ``"1e-4"``.
 ///
 #[pyfunction]
-fn estimate(
-    py_circuit: Bound<'_, PyAny>,
-    code: Bound<'_, PyString>,
-    physical_error: Bound<'_, PyString>,
-    epsilon: Bound<'_, PyString>,
-) -> PyResult<f64> {
-    // TODO Do an instance check if it's actually a circuit
+fn estimate<'py>(
+    py_circuit: Bound<'py, PyAny>,
+    code: Bound<'py, PyString>,
+    physical_error: Bound<'py, PyString>,
+    epsilon: Bound<'py, PyString>,
+) -> PyResult<Bound<'py, PyDict>> {
     let py = py_circuit.py();
+
+    if !py_circuit.is_instance(qc_type(py).bind(py))? {
+        return Err(PyTypeError::new_err("Input is not of type QuantumCircuit"));
+    }
 
     let code = match code.to_str()? {
         "gross" => CodeType::Gross,
@@ -54,10 +72,29 @@ fn estimate(
         .map(|op| op.compile(&arch, &table, accuracy));
     let errors = bicycle_numerics::run_numerics(bicycle, arch, model);
 
+    let results = PyDict::new(py);
+
     match errors.last() {
-        Some(err) => Ok(err.total_error),
-        None => Ok(0.), // the circuit was empty!
+        Some(last) => {
+            results.set_item("total_error", last.total_error)?;
+            results.set_item("end_time", last.end_time)?;
+
+            let counts = PyDict::new(py);
+            counts.set_item("t_injs", last.t_injs)?;
+            counts.set_item("automorphisms", last.automorphisms)?;
+            counts.set_item("measurements", last.measurements)?;
+            counts.set_item("joint_measurements", last.joint_measurements)?;
+            counts.set_item("idles", last.idles)?;
+
+            results.set_item("counts", counts)?;
+        }
+        None => {
+            results.set_item("total_error", 0.0)?;
+            results.set_item("end_time", 0u64)?;
+            results.set_item("counts", PyDict::new(py))?;
+        }
     }
+    Ok(results)
 }
 
 #[pymodule]

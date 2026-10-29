@@ -20,9 +20,23 @@ class TestCustomPassManager(unittest.TestCase):
         bell.h(0)
         bell.cx(0, 1)
 
-        err = estimate(self.pm.run(bell), "gross", "1e-3", "1e-10")
-        print(err)
-        self.assertGreater(err, 0.0)
+        data = estimate(self.pm.run(bell), "gross", "1e-3", "1e-10")
+        self.assertGreater(data["total_error"], 0.0)
+        self.assertGreater(data["end_time"], 0.0)
+
+        counts = data["counts"]
+        self.assertGreater(counts["automorphisms"], 0)
+        self.assertGreater(counts["measurements"], 0)
+
+        self.assertEqual(counts["t_injs"], 0)
+        self.assertEqual(counts["joint_measurements"], 0)
+
+    def test_noncircuit(self):
+        with self.assertRaises(TypeError):
+            estimate("banana", "gross", "1e-3", "1e-10")
+
+        with self.assertRaises(TypeError):
+            estimate(QuantumCircuit(10).to_dag(), "gross", "1e-3", "1e-10")
 
     def test_parameterized_circuit(self):
         qc = QuantumCircuit(1)
@@ -43,8 +57,10 @@ class TestCustomPassManager(unittest.TestCase):
             estimate(bell, "gross", "1e-3", "1e-10")
 
     def test_empty(self):
-        err = estimate(QuantumCircuit(), "gross", "1e-3", "1e-10")
-        self.assertEqual(err, 0.0)
+        data = estimate(QuantumCircuit(), "gross", "1e-3", "1e-10")
+        self.assertEqual(data["total_error"], 0.0)
+        self.assertEqual(data["end_time"], 0.0)
+        self.assertEqual(data["counts"], dict())
 
     def test_integration(self):
         """Build a circuit to compile to Gross code ISA."""
@@ -72,10 +88,10 @@ class TestCustomPassManager(unittest.TestCase):
         pbc = self.pm.run(circuit)
 
         errs = {
-            "gross3": estimate(pbc, "gross", "1e-3", "1e-10"),
-            "gross4": estimate(pbc, "gross", "1e-4", "1e-10"),
-            "twogross3": estimate(pbc, "two_gross", "1e-3", "1e-10"),
-            "twogross4": estimate(pbc, "two_gross", "1e-4", "1e-10"),
+            "gross3": estimate(pbc, "gross", "1e-3", "1e-10")["total_error"],
+            "gross4": estimate(pbc, "gross", "1e-4", "1e-10")["total_error"],
+            "twogross3": estimate(pbc, "two_gross", "1e-3", "1e-10")["total_error"],
+            "twogross4": estimate(pbc, "two_gross", "1e-4", "1e-10")["total_error"],
         }
 
         self.assertGreater(errs["twogross4"], 0)

@@ -31,7 +31,7 @@ fn local_to_global_pauli(z: &[bool], x: &[bool], qubits: &[u32], num_qubits: usi
         basis[*qi as usize] = pauli;
     }
 
-    return basis;
+    basis
 }
 
 pub fn iter_pbc_circuit(
@@ -111,7 +111,7 @@ pub fn iter_pbc_circuit(
 
             let basis = local_to_global_pauli(z, x, qubits, num_qubits);
             PbcOperation::Measurement {
-                basis: basis,
+                basis,
                 flip_result: op.flip_outcome,
             }
         } else {
@@ -137,7 +137,7 @@ pub fn measurement_table(code: CodeType) -> CompleteMeasurementTable {
     let fname = format!("../table_{id}.dat");
     let path = ::std::path::Path::new(&fname);
     if path.exists() {
-        let bytes = std::fs::read(path).expect(format!("Failed reading {}", fname).as_str());
+        let bytes = std::fs::read(path).unwrap_or_else(|_| panic!("Failed reading {}", fname));
         return bitcode::deserialize::<CompleteMeasurementTable>(&bytes)
             .expect("Failed deserializing");
     }
