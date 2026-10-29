@@ -161,8 +161,9 @@ def compile(
         )
 
     num_qubits = node.num_qubits()
+    num_clbits = node.num_clbits()
     num_ancilla = topology.num_ancilla_qubits()
-    circuit = QuantumCircuit(num_qubits)
+    circuit = QuantumCircuit(num_qubits, num_clbits)
 
     if num_ancilla > 0:
         ancilla_register = AncillaRegister(num_ancilla)
@@ -172,7 +173,7 @@ def compile(
         circuit.barrier()
 
     if (inst := node.instruction) is not None:
-        circuit.append(inst, range(num_qubits))
+        circuit.append(inst, range(num_qubits), range(num_clbits))
     else:
         raise ValueError(f"Cannot compile node {node}: no circuit representation available.")
 

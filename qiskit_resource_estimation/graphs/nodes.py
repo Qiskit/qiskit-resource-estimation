@@ -146,21 +146,28 @@ class InstructionNode(Node):
     def name(self) -> str:
         if self._inst is None:
             raise TypeError(
-                f"{type(self).__name__} has no instruction. " "Override this method in a subclass."
+                f"{type(self).__name__} has no instruction. Override this method in a subclass."
             )
         return self._inst.name
 
     def num_qubits(self) -> int:
         if self._inst is None:
             raise TypeError(
-                f"{type(self).__name__} has no instruction. " "Override this method in a subclass."
+                f"{type(self).__name__} has no instruction. Override this method in a subclass."
             )
         return self._inst.num_qubits
+
+    def num_clbits(self) -> int:
+        if self._inst is None:
+            raise TypeError(
+                f"{type(self).__name__} has no instruction. Override this method in a subclass."
+            )
+        return self._inst.num_clbits
 
     def __hash__(self) -> int:
         if self._inst is None:
             raise TypeError(
-                f"{type(self).__name__} has no instruction. " "Override this method in a subclass."
+                f"{type(self).__name__} has no instruction. Override this method in a subclass."
             )
         return hash(
             (self._inst.name, self._inst.num_qubits, self._inst.num_clbits, _param_key(self._inst))
@@ -169,7 +176,7 @@ class InstructionNode(Node):
     def operations(self) -> dict[Node, int] | None:
         if self._inst is None:
             raise TypeError(
-                f"{type(self).__name__} has no instruction. " "Override this method in a subclass."
+                f"{type(self).__name__} has no instruction. Override this method in a subclass."
             )
         if (circuit := self._inst.definition) is None:
             return None
