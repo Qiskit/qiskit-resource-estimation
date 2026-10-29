@@ -36,7 +36,7 @@ features = []
 setup(
     rust_extensions=[
         RustExtension(
-            "qiskit_resource_estimation._bicycle",
+            "qiskit_resource_estimation.error_models.tdg.bicycle_architecture",
             "crates/qiskit-bicycle/Cargo.toml",
             args=("--verbose",),
             binding=Binding.PyO3,

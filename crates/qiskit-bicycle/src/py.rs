@@ -100,7 +100,7 @@ fn estimate<'py>(
 }
 
 #[pymodule]
-mod _bicycle {
+mod bicycle_architecture {
     use pyo3::prelude::*;
     use qiskit_pyo3_ffi as ffi;
 

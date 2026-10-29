@@ -8,7 +8,7 @@ from qiskit.circuit.library import PauliEvolutionGate
 from qiskit.transpiler import generate_preset_pbc_pass_manager
 from qiskit.quantum_info import SparseObservable
 
-from qiskit_resource_estimation._bicycle import estimate
+from qiskit_resource_estimation.error_models.tdg import estimate
 
 
 class TestCustomPassManager(unittest.TestCase):
