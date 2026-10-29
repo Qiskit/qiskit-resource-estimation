@@ -8,7 +8,6 @@ from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import MCXGate
 from qiskit import transpile, generate_preset_pass_manager
 from qiskit.transpiler import AnalysisPass
-from qiskit.quantum_info import get_clifford_gate_names
 
 from qiskit_resource_estimation.graphs.nodes import InstructionNode
 from qiskit_resource_estimation.graphs.callgraph import CallGraph
@@ -20,7 +19,6 @@ from qiskit_resource_estimation.topologies import Linear
 class TrackOps(AnalysisPass):
     def run(self, dag):
         self.property_set["op_count"] = dag.count_ops()
-        # print(dag.count_ops())
 
 
 @ddt
@@ -89,9 +87,9 @@ class TestAncillaAllocation(unittest.TestCase):
         circuit = QuantumCircuit(num_qubits)
         circuit.h(range(n_controls))
         circuit.mcx(list(range(n_controls)), n_controls)
-        basis_gates = get_clifford_gate_names() + ["rz"]
+        basis_gates = ["rz", "x", "h", "cx"]
         staged_pm = generate_preset_pass_manager(
-            2, basis_gates=basis_gates, qubits_initially_zero=False
+            2, basis_gates=basis_gates, qubits_initially_zero=False, seed_transpiler=87
         )
         # add a custom operation tracker
         staged_pm.optimization.append(TrackOps())  # type: ignore[attr-defined]
@@ -113,6 +111,7 @@ class TestAncillaAllocation(unittest.TestCase):
             basis_gates=basis_gates,
             coupling_map=topo.coupling_map(),
             qubits_initially_zero=True,
+            seed_transpiler=87,
         )
 
         # Compare the two (remember to deduct the Hadamards)
