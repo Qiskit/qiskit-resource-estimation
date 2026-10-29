@@ -12,7 +12,7 @@ from ...graphs.metrics import Metric, Value, AdditiveMetric
 from ..error_model import ErrorModel
 
 
-class BicycleError(AdditiveMetric): ...
+class TotalError(AdditiveMetric): ...
 
 
 class Automorphisms(AdditiveMetric): ...
@@ -59,13 +59,13 @@ class TdGErrorModel(ErrorModel[InstructionNode]):
         return isinstance(node, InstructionNode)
 
     def evaluate(self, node: InstructionNode) -> dict[Metric, Value]:
-        circuit = QuantumCircuit(node.num_qubits, node.num_clbits)
+        circuit = QuantumCircuit(node.num_qubits(), node.num_clbits())
         circuit.append(node.instruction, circuit.qubits, circuit.clbits)
         pbc = self._pm.run(circuit)
 
         data = estimate(pbc, self._code, self._p, self._epsilon)
         return {
-            BicycleError(): data["total_error"],
+            TotalError(): data["total_error"],
             Automorphisms(): data["counts"].get("automorphisms", 0),
             JointMeasurements(): data["counts"].get("joint_measurements", 0),
             Measurements(): data["counts"].get("measurements", 0),
