@@ -1,3 +1,5 @@
+// Copyright IBM 2026
+
 use bicycle_compiler::{PathArchitecture, language::AnglePrecision};
 use pyo3::{
     exceptions::{PyTypeError, PyValueError},
@@ -28,20 +30,20 @@ fn qc_type(py: Python<'_>) -> &Py<PyType> {
 /// Take a Qiskit QuantumCircuit instance and run the
 /// bicycle_architecture_compiler on it.
 /// Args:
-///     py_circuit: The ``QuantumCircuit`` instance.
+///     circuit: The ``QuantumCircuit`` instance.
 ///     code: The code, either ``"gross"`` or ``"two_gross"``.
 ///     accuracy: The physical accuracy, either ``"1e-3"`` or ``"1e-4"``.
 ///
 #[pyfunction]
 fn estimate<'py>(
-    py_circuit: Bound<'py, PyAny>,
+    circuit: Bound<'py, PyAny>,
     code: Bound<'py, PyString>,
     physical_error: Bound<'py, PyString>,
     epsilon: Bound<'py, PyString>,
 ) -> PyResult<Bound<'py, PyDict>> {
-    let py = py_circuit.py();
+    let py = circuit.py();
 
-    if !py_circuit.is_instance(qc_type(py).bind(py))? {
+    if !circuit.is_instance(qc_type(py).bind(py))? {
         return Err(PyTypeError::new_err("Input is not of type QuantumCircuit"));
     }
 
@@ -59,13 +61,13 @@ fn estimate<'py>(
         _ => return Err(PyValueError::new_err("Invalid physical error")),
     };
 
-    let circuit_data = py_circuit.getattr(intern!(py, "_data"))?;
+    let circuit_data = circuit.getattr(intern!(py, "_data"))?;
     let circuit_ptr = unsafe { ffi::qk_circuit_borrow_from_python(circuit_data.as_ptr()) };
 
     let num_qubits = unsafe { qk_circuit_num_qubits(circuit_ptr) };
     let arch = PathArchitecture::for_qubits(num_qubits as usize);
     let accuracy = AnglePrecision::lit(epsilon.to_str()?);
-    let table = measurement_table(code.into());
+    let table = measurement_table(code);
 
     let bicycle = iter_pbc_circuit(circuit_ptr)
         .map_err(|e| PyTypeError::new_err(e.to_owned()))?

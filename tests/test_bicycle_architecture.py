@@ -1,6 +1,7 @@
 # Copyright IBM 2026
 
 import unittest
+from typing import cast
 
 from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.circuit.library import PauliEvolutionGate
@@ -33,10 +34,10 @@ class TestCustomPassManager(unittest.TestCase):
 
     def test_noncircuit(self):
         with self.assertRaises(TypeError):
-            estimate("banana", "gross", "1e-3", "1e-10")
+            estimate("banana", "gross", "1e-3", "1e-10")  # pyrefly: ignore
 
         with self.assertRaises(TypeError):
-            estimate(QuantumCircuit(10).to_dag(), "gross", "1e-3", "1e-10")
+            estimate(QuantumCircuit(10).to_dag(), "gross", "1e-3", "1e-10")  # pyrefly: ignore
 
     def test_parameterized_circuit(self):
         qc = QuantumCircuit(1)
@@ -77,6 +78,7 @@ class TestCustomPassManager(unittest.TestCase):
 
         reps = 100
         evo = PauliEvolutionGate(obs, time=1 / reps).definition
+        evo = cast(QuantumCircuit, evo)  # type checkers need hand holding sometimes
 
         circuit = QuantumCircuit(num_qubits, num_qubits)
         for _ in range(reps):

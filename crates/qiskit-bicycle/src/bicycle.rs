@@ -5,9 +5,9 @@ use std::io::Write;
 use bicycle_cliffords::{
     CompleteMeasurementTable, MeasurementTableBuilder, native_measurement::NativeMeasurement,
 };
-use bicycle_common::{BicycleISA, Pauli};
+use bicycle_common::Pauli;
 use bicycle_compiler::language::PbcOperation;
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashSet;
 
 use qiskit_pyo3_ffi::{self as ffi, QkOperationKind};
 
@@ -159,53 +159,4 @@ fn write_table(table: &CompleteMeasurementTable, path: &::std::path::Path) {
     let mut file = ::std::fs::File::create(path).unwrap();
     let bytes = bitcode::serialize(&table).unwrap();
     file.write_all(&bytes).expect("Failed writing");
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum BicycleOp {
-    SyndromeCycle,
-    CSSInitZero,
-    CSSInitPlus,
-    DestructiveZ,
-    DestructiveX,
-    Automorphism,
-    Measure,
-    JointMeasure,
-    ParallelMeasure,
-    JointBellInit,
-    JointTransversalCX,
-    InitT,
-    TGate,
-}
-
-impl From<&BicycleISA> for BicycleOp {
-    fn from(value: &BicycleISA) -> Self {
-        match value {
-            BicycleISA::SyndromeCycle => BicycleOp::SyndromeCycle,
-            BicycleISA::Automorphism(_) => BicycleOp::Automorphism,
-            BicycleISA::CSSInitPlus => BicycleOp::CSSInitPlus,
-            BicycleISA::CSSInitZero => BicycleOp::CSSInitZero,
-            BicycleISA::DestructiveX => BicycleOp::DestructiveX,
-            BicycleISA::DestructiveZ => BicycleOp::DestructiveZ,
-            BicycleISA::InitT => BicycleOp::InitT,
-            BicycleISA::JointBellInit => BicycleOp::JointBellInit,
-            BicycleISA::JointMeasure(_) => BicycleOp::JointMeasure,
-            BicycleISA::JointTransversalCX => BicycleOp::JointTransversalCX,
-            BicycleISA::ParallelMeasure(_) => BicycleOp::ParallelMeasure,
-            BicycleISA::TGate(_) => BicycleOp::TGate,
-            BicycleISA::Measure(_) => BicycleOp::Measure,
-        }
-    }
-}
-
-pub fn gate_statistics(
-    operations: impl Iterator<Item = Vec<Vec<(usize, BicycleISA)>>>,
-) -> HashMap<BicycleOp, usize> {
-    let mut out = HashMap::new();
-    for ops in operations.flatten() {
-        for (_, op) in ops.iter() {
-            *out.entry(op.into()).or_insert(0) += 1;
-        }
-    }
-    out
 }
