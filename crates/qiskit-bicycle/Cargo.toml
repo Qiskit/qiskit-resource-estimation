@@ -9,10 +9,10 @@ name = "qiskit_bicycle_architecture_compiler"
 crate-type = ["cdylib"]
 
 [dependencies]
-bicycle_compiler = { version = "0.2.1", features = ["rsgridsynth"] }
-bicycle_cliffords = "0.2.1"
-bicycle_common = "0.2.1"
-bicycle_numerics = "0.2.1"
+bicycle_compiler = "0.3.0"
+bicycle_cliffords = "0.3.0"
+bicycle_common = "0.3.0"
+bicycle_numerics = "0.3.0"
 bitcode = "0.6.9"
 clap = { version = "4.6.0", features = ["derive"] }
 hashbrown = "0.16.1"

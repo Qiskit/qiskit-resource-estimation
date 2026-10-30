@@ -96,9 +96,9 @@ checksum = "be5eb007b7cacc6c660343e96f650fedf4b5a77512399eb952ca6642cf8d13f7"
 
 [[package]]
 name = "bicycle_benchmark"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8eaf58fb44c06a115128a1786155c430220b88f9a131b97e4d74f99966eaa864"
+checksum = "de6f93b294ee318897b12f139353f03873890dc91ff82e137d147d19b5fa0e96"
 dependencies = [
  "bicycle_common",
  "bicycle_compiler",
@@ -112,9 +112,9 @@ dependencies = [
 
 [[package]]
 name = "bicycle_cliffords"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35bf83a0dd453a5778af57c0ecc9c5dbb926009a8f3f0bd48927604681c81e06"
+checksum = "7ac1fe075851bfdf93c85cf9ddc875fdff85dbf966f0aba094c12ca90450f2ce"
 dependencies = [
  "bicycle_common",
  "clap",
@@ -127,9 +127,9 @@ dependencies = [
 
 [[package]]
 name = "bicycle_common"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b764777c5cfc14e37d53cb227743ebcf1709ddc4c1c8818d1bf055a27c285a2"
+checksum = "451dd48b69aec32f44501b8369a13c3559eb4a143f70e58b69cc174fde1742e6"
 dependencies = [
  "rand",
  "serde",
@@ -137,9 +137,9 @@ dependencies = [
 
 [[package]]
 name = "bicycle_compiler"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "954d38e12a8aa47ac0778bc3fd3918f3379ab7806ed2003dadfd0ba8ea90ba33"
+checksum = "3576a937c3bd9c4f19d2f3500e6926855af6bfca20eaceb8c7fff17482aa393e"
 dependencies = [
  "bicycle_cliffords",
  "bicycle_common",
@@ -156,9 +156,9 @@ dependencies = [
 
 [[package]]
 name = "bicycle_numerics"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "561dc55b86f6056b36f9404f66e34f3ffe6eedc0e50d665e66ba66157b502f5d"
+checksum = "06b67e8a03554f44bb0902da75585a99d12ace029c1a41b58e2a69c02bb5fede"
 dependencies = [
  "bicycle_benchmark",
  "bicycle_common",
