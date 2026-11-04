@@ -72,30 +72,41 @@ fn estimate<'py>(
     let bicycle = iter_pbc_circuit(circuit_ptr)
         .map_err(|e| PyTypeError::new_err(e.to_owned()))?
         .map(|op| op.compile(&arch, &table, accuracy));
-    let errors = bicycle_numerics::run_numerics(bicycle, arch, model);
+
+    // Accumulate all operation counts
+    let mut idles = 0;
+    let mut t_injs = 0;
+    let mut automorphisms = 0;
+    let mut measurements = 0;
+    let mut joint_measurements = 0;
+    let mut total_error = 0.0;
+    let mut end_time = 0;
+
+    for data in bicycle_numerics::run_numerics(bicycle, arch, model) {
+        idles += data.idles;
+        t_injs += data.t_injs;
+        automorphisms += data.automorphisms;
+        measurements += data.measurements;
+        joint_measurements += data.joint_measurements;
+
+        // the iterator does not know it's length so we just overwrite the total error
+        // and end time with the most up to data value
+        total_error = data.total_error;
+        end_time = data.end_time;
+    }
 
     let results = PyDict::new(py);
+    results.set_item("total_error", total_error)?;
+    results.set_item("end_time", end_time)?;
 
-    match errors.last() {
-        Some(last) => {
-            results.set_item("total_error", last.total_error)?;
-            results.set_item("end_time", last.end_time)?;
+    let counts = PyDict::new(py);
+    counts.set_item("t_injs", t_injs)?;
+    counts.set_item("automorphisms", automorphisms)?;
+    counts.set_item("measurements", measurements)?;
+    counts.set_item("joint_measurements", joint_measurements)?;
+    counts.set_item("idles", idles)?;
 
-            let counts = PyDict::new(py);
-            counts.set_item("t_injs", last.t_injs)?;
-            counts.set_item("automorphisms", last.automorphisms)?;
-            counts.set_item("measurements", last.measurements)?;
-            counts.set_item("joint_measurements", last.joint_measurements)?;
-            counts.set_item("idles", last.idles)?;
-
-            results.set_item("counts", counts)?;
-        }
-        None => {
-            results.set_item("total_error", 0.0)?;
-            results.set_item("end_time", 0u64)?;
-            results.set_item("counts", PyDict::new(py))?;
-        }
-    }
+    results.set_item("counts", counts)?;
     Ok(results)
 }
 
