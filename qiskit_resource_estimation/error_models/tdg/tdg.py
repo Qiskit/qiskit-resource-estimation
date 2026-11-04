@@ -1,5 +1,6 @@
 # Copyright IBM 2026
 
+import numpy as np
 from typing import Literal
 
 from qiskit.circuit import QuantumCircuit
@@ -12,7 +13,23 @@ from ...graphs.metrics import Metric, Value, AdditiveMetric
 from ..error_model import ErrorModel
 
 
-class TotalError(AdditiveMetric): ...
+class TotalError(AdditiveMetric):
+
+    def values_to_samples(self, values, num_samples):
+        """Fidelities are multiplicative, but samples are additive in nature.
+
+        To provide an intuition nevertheless, we convert fidelities ``[f_i]_i`` into errors,
+        ``e_i = 1 - f_i`` and base samples based on the relation of ``e_i`` to
+        ``e_tot = sum(e_i)``.
+
+        Importantly, this does **not** correctly reflect the value of the total fidelity
+        ``f_tot = prod(f_i)``, but only provides a visual aid.
+        """
+        errors = np.asarray(values)
+        total_error = sum(values)
+        # we finally cast the mp.mpf into floats
+        samples = [int(np.round(float(v))) for v in num_samples * errors / total_error]
+        return samples
 
 
 class Automorphisms(AdditiveMetric): ...

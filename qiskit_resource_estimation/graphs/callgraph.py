@@ -31,7 +31,7 @@ class CallGraph:
         """Construct a CallGraph from a Qiskit QuantumCircuit."""
         instance = cls.__new__(cls)
         instance._graph = PyDiGraph()
-        instance._root = instance._graph.add_node(Sentinel(circuit.name))
+        instance._root = instance._graph.add_node(Sentinel(circuit.name, circuit.num_qubits))
 
         operations: dict[InstructionNode, int] = {}
         for circuit_inst in circuit.data:
@@ -65,15 +65,23 @@ class CallGraph:
         return sum(self._path_cost(index) for index in indices)
 
     def count_basis(
-        self, basis: list[str] | None = None, allow_incomplete_basis: bool = True
+        self,
+        basis: list[str] | None = None,
+        allow_incomplete_basis: bool = True,
+        size_limit: int | None = None,
     ) -> dict[Node, int]:
         """Unroll the operations, keeping count of how often operations appear.
+
+        Both `basis` and `size_limit` can be passed, the filters are compatible.
+        For example, if a gate name is in `basis` it will not be unrolled even if it is
+        above the `size_limit`.
 
         Args:
             basis: These operations are not unrolled further.
             allow_incomplete_basis: If ``False``, this method will fail if it cannot unroll the
                 graph to the target basis. If ``True`` it will simply return the most basic
                 nodes.
+            size_limit: If passed, unroll operation strictly above the size limit.
 
         Returns:
             A dictionary with ``{node: #ops}`` pairs.
@@ -87,6 +95,10 @@ class CallGraph:
             # make name checking case insensitive
             basis = [name.lower() for name in basis]
 
+        # Set the limit to -1 if not passed, meaning no operation is unrolled
+        if size_limit is None:
+            size_limit = -1
+
         nodes = self._graph.nodes()
         to_visit = {self._root}
         counts = {}
@@ -94,7 +106,7 @@ class CallGraph:
             node_id = to_visit.pop()
             node = nodes[node_id]
 
-            if node.name().lower() in basis:
+            if node.name().lower() in basis or node.num_qubits() <= size_limit:
                 counts[node] = counts.get(node, 0) + self._path_cost(node_id)
             else:
                 children = set(self._graph.successor_indices(node_id))
@@ -111,6 +123,7 @@ class CallGraph:
         self,
         basis: list[str] | None = None,
         error_models: list[ErrorModel[Any]] | None = None,
+        size_limit: int | None = None,
     ) -> dict[Metric, Value]:
         """Estimate metrics by accumulating over all basis nodes.
 
@@ -121,17 +134,22 @@ class CallGraph:
         When both sources define the same metric key, the error model's value takes precedence.
         Metrics are then scaled by the node's repetition count and accumulated across all nodes.
 
+        Both `basis` and `size_limit` can be passed, the filters are compatible.
+        For example, if a gate name is in `basis` it will not be unrolled even if it is
+        above the `size_limit`.
+
         Args:
             basis: Nodes to stop unrolling at (passed to ``count_basis``). If ``None``, the
                 graph is fully unrolled to the terminal leafs.
             error_models: A mapping from node type to error model. The first model whose
                 ``supports(node)`` returns True is used; keys communicate intent but are not
                 used for lookup.
+            size_limit: If passed, unroll operation strictly above the size limit.
 
         Returns:
             A dictionary mapping each metric to its accumulated value.
         """
-        counts = self.count_basis(basis)
+        counts = self.count_basis(basis, size_limit=size_limit)
         totals: dict[Metric, Value] = {}
         error_models = error_models or []
 
@@ -158,6 +176,7 @@ class CallGraph:
         allow_incomplete_basis: bool = True,
         error_models: list[ErrorModel[Any]] | None = None,
         overwrite: bool = False,
+        size_limit: int | None = None,
     ) -> None:
         """Dump a flamegraph for the target metric in a file.
 
@@ -167,6 +186,10 @@ class CallGraph:
             <more lines>
 
         and can be read with a standard visualizer.
+
+        Both `basis` and `size_limit` can be passed, the filters are compatible.
+        For example, if a gate name is in `basis` it will not be unrolled even if it is
+        above the `size_limit`.
 
         Args:
             filename: The filename to write to.
@@ -180,6 +203,7 @@ class CallGraph:
                 ``supports(node)`` returns True is used.
             overwrite: If ``False``, an error is raised if ``filename`` exists already. If ``True``,
                 the file will be overwritten.
+            size_limit: If passed, unroll operation strictly above the size limit.
         """
         if self._root is None:
             raise RuntimeError("Graph seems to be empty!")
@@ -190,6 +214,9 @@ class CallGraph:
             # make name checking case insensitive
             basis = [name.lower() for name in basis]
 
+        if size_limit is None:
+            size_limit = -1
+
         nodes = self._graph.nodes()
         to_visit = {self._root}
         leafs = []  # list of all the final nodes -- this shouldn't use Hash-based containers
@@ -199,7 +226,7 @@ class CallGraph:
             self._graph.successor_indices(node_idx)
             node = nodes[node_idx]
 
-            if node.name().lower() in basis:
+            if node.name().lower() in basis or node.num_qubits() <= size_limit:
                 leafs.append(node_idx)
             else:
                 children = set(self._graph.successor_indices(node_idx))
