@@ -8,6 +8,12 @@ version = "0.1.0"
 description = "Estimate FTQC algorithm resources"
 dependencies = ["qiskit>=2.4", "mpmath", "matplotlib", "numpy"]
 
+[project.optional-dependencies]
+tdg = [
+  "bicycle-architecture-compiler", 
+  "qiskit>=2.5",  # we need the preset PBC pass manager
+]
+
 [tool.setuptools]
 packages = ["qiskit_resource_estimation"]
 
@@ -16,7 +22,16 @@ packages = ["qiskit_resource_estimation"]
 examples = [ # dependency group for running the examples
   "matplotlib",
 ]
-dev = ["black", "ruff", "pyrefly", "ddt"]
+dev = [
+  # formatting, lint & friends
+  "black", 
+  "ruff", 
+  "pyrefly", 
+  # test dependencies
+  "ddt", 
+  "bicycle-architecture-compiler",
+  "qiskit>=2.5",  # we need the preset PBC pass manager
+]
 
 [tool.black]
 line-length = 100

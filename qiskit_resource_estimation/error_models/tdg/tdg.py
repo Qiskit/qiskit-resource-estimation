@@ -6,8 +6,6 @@ from typing import Literal
 from qiskit.circuit import QuantumCircuit
 from qiskit.transpiler import PassManager, generate_preset_pbc_pass_manager
 
-from qiskit_resource_estimation.error_models.tdg.bicycle_architecture import estimate
-
 from ...graphs.nodes import Node, InstructionNode
 from ...graphs.metrics import Metric, Value, AdditiveMetric
 from ..error_model import ErrorModel
@@ -64,6 +62,20 @@ class TdGErrorModel(ErrorModel[InstructionNode]):
         pbc_pass_manager: PassManager | None = None,
     ):
         super().__init__()
+
+        # Try and import the bicycle architecture compiler.
+        # We do this eagerly here to fail upon initialization and not during the
+        # `evaluate` method lower in the stack.
+        try:
+            from bicycle_architecture_compiler import estimate
+
+            self._estimate_fn = estimate
+        except ImportError as exc:
+            raise RuntimeError(
+                "bicycle-architecture-compiler is needed for the TdGErrorModel. "
+                'Install it directly via pip or using dependencies via `pip install ".[tdg]"`'
+            ) from exc
+
         self._code = code
         self._p = physical_error
         self._epsilon = epsilon
@@ -80,7 +92,8 @@ class TdGErrorModel(ErrorModel[InstructionNode]):
         circuit.append(node.instruction, circuit.qubits, circuit.clbits)
         pbc = self._pm.run(circuit)
 
-        data = estimate(pbc, self._code, self._p, self._epsilon)
+        data = self._estimate_fn(pbc, self._code, self._p, self._epsilon)
+
         return {
             TotalError(): data["total_error"],
             Automorphisms(): data["counts"].get("automorphisms", 0),

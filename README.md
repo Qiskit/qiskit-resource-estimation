@@ -51,12 +51,28 @@ allows to plug-in arbitrary compilers).
 
 Simply 
 ```bash
-pip install -e .
+pip install .
+```
+or to include the Tour-de-Gross error model based on the 
+[`bicycle-architecture-compiler`](https://github.com/qiskit-community/bicycle-architecture-compiler)
+```bash
+pip install ".[tdg]"
 ```
 
 ## Code structure
 
 The library has two layers: a **generic graph layer** that is independent of Qiskit and any specific error model, and a **built-in bicycle-code layer** on top.
+
+### Built-in error models
+
+The example above already outlined how to use error models. The main concept of Qiskit Resource Estimation
+is to have extensible error models, see the sections below. However, we do provide the following
+error models out-of-the box in ``qiskit_resource_estimation.error_models``:
+
+* ``GrossErrorModel``: A heuristic, fast error model based on the [Tour-de-Gross architecture paper](https://arxiv.org/abs/2506.03094)
+  using average counts and locations.
+* ``TdGErrorModel``: A more exact error model on the same Tour-de-Gross architecture, based on 
+  ``bicycle-architecture-compiler`` which roughly compiles the circuit. 
 
 ### The call graph
 
