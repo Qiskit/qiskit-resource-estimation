@@ -102,9 +102,10 @@ class Sentinel(Node):
     Used e.g. as root node when constructing from a circuit.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, num_qubits: int | None):
         super().__init__()
         self._name = name
+        self._num_qubits = num_qubits
 
     def name(self):
         return self._name
@@ -116,7 +117,11 @@ class Sentinel(Node):
         raise RuntimeError("A Sentinel cannot be decomposed. This indicates a faulty graph.")
 
     def num_qubits(self):
-        raise RuntimeError("A Sentinel cannot be decomposed. This indicates a faulty graph.")
+        if self._num_qubits is None:
+            raise RuntimeError(
+                "This Sentinel does not have a number of qubits. This indicates a faulty graph."
+            )
+        return self._num_qubits
 
     def __repr__(self) -> str:
         return f"{self.name()} (sentinel)"
